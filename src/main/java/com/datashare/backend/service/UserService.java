@@ -29,7 +29,7 @@ public class UserService {
 
 		try {
 			User savedUser = userRepository.save(user);
-			return new UserResponse(savedUser.getId(), savedUser.getEmail(), savedUser.getCreatedAt());
+			return UserResponse.from(savedUser);
 		}
 		catch (DataIntegrityViolationException exception) {
 			throw new EmailAlreadyUsedException();

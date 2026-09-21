@@ -4,12 +4,31 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ApiError> handleUnreadableRequest(HttpMessageNotReadableException exception) {
+		return ResponseEntity.badRequest()
+				.body(new ApiError("INVALID_REQUEST", "Le corps de la requête est invalide."));
+	}
+
+	@ExceptionHandler(InvalidCredentialsException.class)
+	public ResponseEntity<ApiError> handleInvalidCredentials(InvalidCredentialsException exception) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(new ApiError("INVALID_CREDENTIALS", exception.getMessage()));
+	}
+
+	@ExceptionHandler(CurrentUserNotFoundException.class)
+	public ResponseEntity<ApiError> handleCurrentUserNotFound(CurrentUserNotFoundException exception) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(new ApiError("INVALID_TOKEN", "Authentification invalide."));
+	}
 
 	@ExceptionHandler(EmailAlreadyUsedException.class)
 	public ResponseEntity<ApiError> handleEmailAlreadyUsed(EmailAlreadyUsedException exception) {
