@@ -3,7 +3,7 @@
   min-height: 100vh;
 }
 
-.register-page {
+.auth-page {
   position: relative;
   display: grid;
   min-height: 100vh;
@@ -44,7 +44,7 @@
   background: #111111;
 }
 
-.register-card {
+.auth-card {
   align-self: center;
   justify-self: center;
   width: min(40rem, calc(100% - 2rem));
@@ -108,7 +108,7 @@ input[aria-invalid='true'] {
   display: block;
   width: max-content;
   margin: 0.3rem auto 1.2rem;
-  color: #e36d3d;
+  color: #a74320;
   font-size: 0.78rem;
   text-decoration: none;
 }
@@ -122,7 +122,7 @@ button {
   min-height: 2.6rem;
   border: 1px solid #f09a70;
   border-radius: 0.4rem;
-  color: #dc693d;
+  color: #9f3e1c;
   background: #fff1e8;
   font-size: 0.8rem;
   cursor: pointer;
@@ -156,7 +156,7 @@ button:disabled {
 
 footer {
   padding: 0 6rem 1.5rem;
-  color: #ffffff;
+  color: #3b1d1b;
   font-size: 0.7rem;
 }
 
@@ -190,7 +190,7 @@ footer sup {
     font-size: 0.7rem;
   }
 
-  .register-card {
+  .auth-card {
     width: calc(100% - 2rem);
     margin-block: 1.5rem;
     padding: 1.75rem 1.25rem 1.25rem;

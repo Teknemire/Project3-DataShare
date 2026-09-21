@@ -1,0 +1,74 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.account-page {
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto 1fr auto;
+  color: #111111;
+  background:
+    radial-gradient(circle at 88% 8%, rgb(255 196 150 / 45%), transparent 38%),
+    linear-gradient(160deg, #ffbc90 0%, #f58b76 52%, #df6265 100%);
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 6rem 0;
+}
+
+.brand {
+  color: #0b0b0b;
+  font-size: 1.65rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+button {
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 0.45rem;
+  color: #ffffff;
+  background: #292929;
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.account-card {
+  align-self: center;
+  justify-self: center;
+  width: min(40rem, calc(100% - 2rem));
+  padding: 2rem;
+  border-radius: 0.8rem;
+  background: #ffffff;
+  box-shadow: 0 0.15rem 0.5rem rgb(77 36 34 / 24%);
+  text-align: center;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+.error {
+  color: #9f1c13;
+}
+
+footer {
+  padding: 0 6rem 1.5rem;
+  color: #3b1d1b;
+  font-size: 0.7rem;
+}
+
+@media (max-width: 600px) {
+  .site-header {
+    padding: 1rem 1rem 0;
+  }
+
+  footer {
+    padding: 0 1rem 1rem;
+  }
+}

@@ -1,12 +1,30 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('./features/home/home').then((component) => component.Home),
+    title: 'DataShare | Partage de fichiers',
+  },
   {
     path: 'register',
     loadComponent: () =>
       import('./features/auth/register/register').then((component) => component.Register),
     title: 'Créer un compte | DataShare',
   },
-  { path: '', pathMatch: 'full', redirectTo: 'register' },
-  { path: '**', redirectTo: 'register' },
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('./features/auth/login/login').then((component) => component.Login),
+    title: 'Se connecter | DataShare',
+  },
+  {
+    path: 'account',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/account/account').then((component) => component.Account),
+    title: 'Mon espace | DataShare',
+  },
+  { path: '**', redirectTo: '' },
 ];

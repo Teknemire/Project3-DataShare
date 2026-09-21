@@ -1,10 +1,10 @@
-<main class="register-page">
+<main class="auth-page">
   <header class="site-header">
-    <a class="brand" href="/" aria-label="Accueil DataShare">DataShare</a>
-    <a class="login-button" href="/login">Se connecter</a>
+    <a class="brand" routerLink="/" aria-label="Accueil DataShare">DataShare</a>
+    <a class="login-button" routerLink="/login">Se connecter</a>
   </header>
 
-  <section class="register-card" aria-labelledby="register-title">
+  <section class="auth-card" aria-labelledby="register-title">
     <h1 id="register-title">Créer un compte</h1>
 
     <form [formGroup]="registrationForm" (ngSubmit)="submit()" novalidate>
@@ -42,7 +42,7 @@
           placeholder="Saisissez votre mot de passe..."
           formControlName="password"
           [attr.aria-invalid]="registrationForm.controls.password.invalid && registrationForm.controls.password.touched"
-          aria-describedby="password-help password-error"
+          [attr.aria-describedby]="registrationForm.controls.password.invalid && registrationForm.controls.password.touched ? 'password-help password-error' : 'password-help'"
         />
         <p class="visually-hidden" id="password-help">Le mot de passe doit contenir au moins 8 caractères.</p>
         @if (registrationForm.controls.password.invalid && registrationForm.controls.password.touched) {
@@ -82,7 +82,7 @@
         }
       </div>
 
-      <a class="existing-account" href="/login">J’ai déjà un compte</a>
+      <a class="existing-account" routerLink="/login">J’ai déjà un compte</a>
 
       <button type="submit" [disabled]="isSubmitting()">
         {{ isSubmitting() ? 'Création en cours…' : 'Créer mon compte' }}

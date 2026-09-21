@@ -1,0 +1,21 @@
+<main class="account-page">
+  <header class="site-header">
+    <a class="brand" routerLink="/account" aria-label="Accueil DataShare">DataShare</a>
+    <button type="button" (click)="logout()">Se déconnecter</button>
+  </header>
+
+  <section class="account-card" aria-labelledby="account-title" aria-live="polite">
+    <h1 id="account-title">Mon espace</h1>
+
+    @if (isLoading()) {
+      <p>Chargement de votre compte…</p>
+    } @else if (errorMessage()) {
+      <p class="error" role="alert">{{ errorMessage() }}</p>
+    } @else if (user(); as currentUser) {
+      <p>Vous êtes connecté avec l’adresse&nbsp;:</p>
+      <strong>{{ currentUser.email }}</strong>
+    }
+  </section>
+
+  <footer>Copyright DataShare<sup>®</sup> 2025</footer>
+</main>

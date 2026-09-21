@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import {
   AbstractControl,
   FormControl,
@@ -20,12 +21,13 @@ function passwordsMatch(control: AbstractControl): ValidationErrors | null {
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './register.html',
-  styleUrl: './register.scss',
+  styleUrl: '../auth-page.scss',
 })
 export class Register {
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   protected readonly isSubmitting = signal(false);
   protected readonly feedback = signal('');
@@ -67,9 +69,7 @@ export class Register {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
-          this.registrationSucceeded.set(true);
-          this.feedback.set('Votre compte a bien été créé.');
-          this.registrationForm.reset();
+          void this.router.navigate(['/login'], { queryParams: { registered: true } });
         },
         error: (error: HttpErrorResponse) => this.handleError(error),
       });

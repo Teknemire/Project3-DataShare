@@ -1,0 +1,24 @@
+<main class="home-page">
+  <header class="site-header">
+    <a class="brand" routerLink="/" aria-label="Accueil DataShare">DataShare</a>
+    <a class="account-link" [routerLink]="destination">
+      {{ isAuthenticated ? 'Mon espace' : 'Se connecter' }}
+    </a>
+  </header>
+
+  <section class="home-content" aria-labelledby="home-title">
+    <h1 id="home-title">Tu veux partager un fichier&nbsp;?</h1>
+    <a
+      class="share-action"
+      [routerLink]="destination"
+      [attr.aria-label]="isAuthenticated ? 'Accéder à mon espace pour partager un fichier' : 'Se connecter pour partager un fichier'"
+    >
+      <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+        <path d="M12 16V8m0 0-3 3m3-3 3 3" />
+        <path d="M7.5 18.5H6a4 4 0 0 1-.45-7.98A6.5 6.5 0 0 1 18 9.5h.5a3.5 3.5 0 0 1 0 7H17" />
+      </svg>
+    </a>
+  </section>
+
+  <footer>Copyright DataShare<sup>®</sup> 2025</footer>
+</main>

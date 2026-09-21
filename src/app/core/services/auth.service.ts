@@ -1,13 +1,37 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { RegisterRequest, UserResponse } from '../models/auth.models';
+import { inject, Injectable, signal } from '@angular/core';
+import { Observable, tap } from 'rxjs';
+import { LoginRequest, LoginResponse, RegisterRequest, UserResponse } from '../models/auth.models';
+import { TokenStorageService } from './token-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly tokenStorage = inject(TokenStorageService);
+
+  readonly currentUser = signal<UserResponse | null>(null);
 
   register(request: RegisterRequest): Observable<UserResponse> {
     return this.http.post<UserResponse>('/api/auth/register', request);
+  }
+
+  login(request: LoginRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>('/api/auth/login', request).pipe(
+      tap((response) => {
+        this.tokenStorage.set(response.accessToken);
+        this.currentUser.set(response.user);
+      }),
+    );
+  }
+
+  loadCurrentUser(): Observable<UserResponse> {
+    return this.http
+      .get<UserResponse>('/api/auth/me')
+      .pipe(tap((user) => this.currentUser.set(user)));
+  }
+
+  logout(): void {
+    this.tokenStorage.clear();
+    this.currentUser.set(null);
   }
 }
