@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { Register } from './register';
@@ -6,6 +7,7 @@ import { Register } from './register';
 describe('Register', () => {
   let fixture: ComponentFixture<Register>;
   let authService: jasmine.SpyObj<AuthService>;
+  let router: Router;
 
   beforeEach(async () => {
     authService = jasmine.createSpyObj<AuthService>('AuthService', ['register']);
@@ -19,10 +21,11 @@ describe('Register', () => {
 
     await TestBed.configureTestingModule({
       imports: [Register],
-      providers: [{ provide: AuthService, useValue: authService }],
+      providers: [{ provide: AuthService, useValue: authService }, provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Register);
+    router = TestBed.inject(Router);
     fixture.detectChanges();
   });
 
@@ -38,6 +41,7 @@ describe('Register', () => {
   });
 
   it('registers a user when the form is valid', () => {
+    const navigate = spyOn(router, 'navigate').and.resolveTo(true);
     setInputValue('#email', 'user@example.com');
     setInputValue('#password', 'password123');
     setInputValue('#password-confirmation', 'password123');
@@ -50,9 +54,7 @@ describe('Register', () => {
       email: 'user@example.com',
       password: 'password123',
     });
-    expect(fixture.nativeElement.querySelector('[role="status"]')?.textContent).toContain(
-      'Votre compte a bien été créé.',
-    );
+    expect(navigate).toHaveBeenCalledOnceWith(['/login'], { queryParams: { registered: true } });
   });
 
   function setInputValue(selector: string, value: string): void {
