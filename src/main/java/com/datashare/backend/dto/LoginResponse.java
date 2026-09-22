@@ -8,4 +8,8 @@ public record LoginResponse(
 		Instant expiresAt,
 		UserResponse user
 ) {
+	@Override
+	public String toString() {
+		return "LoginResponse[accessToken=***, tokenType=" + tokenType + ", expiresAt=" + expiresAt + "]";
+	}
 }

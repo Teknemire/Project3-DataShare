@@ -13,4 +13,8 @@ public record LoginRequest(
 		@NotBlank(message = "Le mot de passe est obligatoire.")
 		String password
 ) {
+	@Override
+	public String toString() {
+		return "LoginRequest[password=***]";
+	}
 }

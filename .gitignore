@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### DataShare local file storage ###
+/storage/

@@ -14,4 +14,8 @@ public record RegisterRequest(
 		@Size(min = 8, max = 72, message = "Le mot de passe doit contenir entre 8 et 72 caractères.")
 		String password
 ) {
+	@Override
+	public String toString() {
+		return "RegisterRequest[password=***]";
+	}
 }
