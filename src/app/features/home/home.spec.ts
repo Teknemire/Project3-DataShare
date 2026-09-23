@@ -27,12 +27,12 @@ describe('Home', () => {
     );
   });
 
-  it('directs an authenticated visitor to their account', () => {
+  it('directs an authenticated visitor to upload and exposes their account', () => {
     tokenStorage.set('signed-token');
     const fixture = createComponent();
-    const links = fixture.nativeElement.querySelectorAll('a[href="/account"]');
 
-    expect(links.length).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('a[href="/account"]').length).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('a[href="/upload"]').length).toBe(1);
     expect(fixture.nativeElement.querySelector('.account-link')?.textContent).toContain(
       'Mon espace',
     );
