@@ -57,6 +57,23 @@ h1 {
   color: #9f1c13;
 }
 
+.share-link {
+  display: block;
+  width: max-content;
+  margin: 1.5rem auto 0;
+  padding: 0.7rem 1rem;
+  border: 1px solid #f09a70;
+  border-radius: 0.4rem;
+  color: #9f3e1c;
+  background: #fff1e8;
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.share-link:hover {
+  background: #ffe3d2;
+}
+
 footer {
   padding: 0 6rem 1.5rem;
   color: #3b1d1b;

@@ -1,0 +1,20 @@
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { FileResponse, UploadOptions } from '../models/file.models';
+
+@Injectable({ providedIn: 'root' })
+export class FileService {
+  private readonly http = inject(HttpClient);
+
+  upload(file: File, options: UploadOptions): Observable<FileResponse> {
+    const body = new FormData();
+    body.append('file', file, file.name);
+    body.append('expirationDays', options.expirationDays.toString());
+    if (options.password) {
+      body.append('password', options.password);
+    }
+
+    return this.http.post<FileResponse>('/api/files', body);
+  }
+}

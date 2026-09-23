@@ -1,6 +1,6 @@
 <main class="account-page">
   <header class="site-header">
-    <a class="brand" routerLink="/account" aria-label="Accueil DataShare">DataShare</a>
+    <a class="brand" routerLink="/" aria-label="Accueil DataShare">DataShare</a>
     <button type="button" (click)="logout()">Se déconnecter</button>
   </header>
 
@@ -14,6 +14,7 @@
     } @else if (user(); as currentUser) {
       <p>Vous êtes connecté avec l’adresse&nbsp;:</p>
       <strong>{{ currentUser.email }}</strong>
+      <a class="share-link" routerLink="/upload">Partager un fichier</a>
     }
   </section>
 

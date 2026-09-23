@@ -12,5 +12,6 @@ export class Home {
   private readonly tokenStorage = inject(TokenStorageService);
 
   protected readonly isAuthenticated = this.tokenStorage.get() !== null;
-  protected readonly destination = this.isAuthenticated ? '/account' : '/login';
+  protected readonly accountDestination = this.isAuthenticated ? '/account' : '/login';
+  protected readonly shareDestination = this.isAuthenticated ? '/upload' : '/login';
 }
