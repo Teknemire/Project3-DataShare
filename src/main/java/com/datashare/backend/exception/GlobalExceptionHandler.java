@@ -40,6 +40,30 @@ public class GlobalExceptionHandler {
 				.body(new ApiError("STORAGE_UNAVAILABLE", "Le stockage des fichiers est indisponible."));
 	}
 
+	@ExceptionHandler(ShareNotFoundException.class)
+	public ResponseEntity<ApiError> handleShareNotFound(ShareNotFoundException exception) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(new ApiError("SHARE_NOT_FOUND", exception.getMessage()));
+	}
+
+	@ExceptionHandler(ShareExpiredException.class)
+	public ResponseEntity<ApiError> handleShareExpired(ShareExpiredException exception) {
+		return ResponseEntity.status(HttpStatus.GONE)
+				.body(new ApiError("SHARE_EXPIRED", exception.getMessage()));
+	}
+
+	@ExceptionHandler(DownloadAuthenticationException.class)
+	public ResponseEntity<ApiError> handleDownloadAuthentication(DownloadAuthenticationException exception) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(new ApiError("DOWNLOAD_AUTH_FAILED", exception.getMessage()));
+	}
+
+	@ExceptionHandler(InvalidDownloadTicketException.class)
+	public ResponseEntity<ApiError> handleInvalidDownloadTicket(InvalidDownloadTicketException exception) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(new ApiError("DOWNLOAD_ACCESS_INVALID", exception.getMessage()));
+	}
+
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	public ResponseEntity<ApiError> handleUnreadableRequest(HttpMessageNotReadableException exception) {
 		return ResponseEntity.badRequest()
