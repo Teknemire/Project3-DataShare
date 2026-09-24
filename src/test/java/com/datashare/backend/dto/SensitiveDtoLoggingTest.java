@@ -12,11 +12,13 @@ class SensitiveDtoLoggingTest {
 	void requestRepresentationsDoNotRevealPasswordsOrEmails() {
 		RegisterRequest register = new RegisterRequest("private@example.com", "registration-secret");
 		LoginRequest login = new LoginRequest("private@example.com", "login-secret");
+		DownloadRequest download = new DownloadRequest("download-secret");
 
 		assertThat(register.toString())
 				.doesNotContain("private@example.com", "registration-secret");
 		assertThat(login.toString())
 				.doesNotContain("private@example.com", "login-secret");
+		assertThat(download.toString()).doesNotContain("download-secret");
 	}
 
 	@Test
@@ -29,10 +31,15 @@ class SensitiveDtoLoggingTest {
 				UUID.randomUUID(), "private.pdf", "application/pdf", 100,
 				Instant.parse("2026-09-22T12:00:00Z"), Instant.parse("2026-09-29T12:00:00Z"),
 				false, "http://localhost:4200/share/secret-share-token", FileStatus.ACTIVE);
+		DownloadAccessResponse download = new DownloadAccessResponse(
+				"/api/shares/secret-share-token/content?ticket=secret-ticket",
+				Instant.parse("2026-09-22T12:01:00Z"));
 
 		assertThat(login.toString())
 				.doesNotContain("secret-jwt", "private@example.com");
 		assertThat(file.toString())
 				.doesNotContain("secret-share-token", "private.pdf");
+		assertThat(download.toString())
+				.doesNotContain("secret-share-token", "secret-ticket");
 	}
 }
