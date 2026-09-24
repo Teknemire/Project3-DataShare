@@ -27,6 +27,12 @@ export const routes: Routes = [
     title: 'Partager un fichier | DataShare',
   },
   {
+    path: 'share/:token',
+    loadComponent: () =>
+      import('./features/share/share').then((component) => component.Share),
+    title: 'Télécharger un fichier | DataShare',
+  },
+  {
     path: 'account',
     canActivate: [authGuard],
     loadComponent: () =>

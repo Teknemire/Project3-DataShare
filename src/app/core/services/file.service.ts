@@ -1,7 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { FileResponse, UploadOptions } from '../models/file.models';
+import {
+  DownloadAccessResponse,
+  FileResponse,
+  SharedFileResponse,
+  UploadOptions,
+} from '../models/file.models';
 
 @Injectable({ providedIn: 'root' })
 export class FileService {
@@ -16,5 +21,16 @@ export class FileService {
     }
 
     return this.http.post<FileResponse>('/api/files', body);
+  }
+
+  getSharedFile(token: string): Observable<SharedFileResponse> {
+    return this.http.get<SharedFileResponse>(`/api/shares/${encodeURIComponent(token)}`);
+  }
+
+  authorizeDownload(token: string, password?: string): Observable<DownloadAccessResponse> {
+    return this.http.post<DownloadAccessResponse>(
+      `/api/shares/${encodeURIComponent(token)}/download`,
+      password ? { password } : {},
+    );
   }
 }

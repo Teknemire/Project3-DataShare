@@ -16,3 +16,16 @@ export interface UploadOptions {
   expirationDays: number;
   password?: string;
 }
+
+export interface SharedFileResponse {
+  originalName: string;
+  mimeType: string;
+  size: number;
+  expiresAt: string;
+  passwordProtected: boolean;
+}
+
+export interface DownloadAccessResponse {
+  downloadUrl: string;
+  expiresAt: string;
+}
