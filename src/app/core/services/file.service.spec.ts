@@ -43,4 +43,29 @@ describe('FileService', () => {
     expect((request.request.body as FormData).has('password')).toBeFalse();
     request.flush({});
   });
+
+  it('loads public metadata without sending a password', () => {
+    service.getSharedFile('share/token').subscribe();
+
+    const request = http.expectOne('/api/shares/share%2Ftoken');
+    expect(request.request.method).toBe('GET');
+    request.flush({});
+  });
+
+  it('requests a temporary download URL with the password', () => {
+    service.authorizeDownload('share-token', 'download-secret').subscribe();
+
+    const request = http.expectOne('/api/shares/share-token/download');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ password: 'download-secret' });
+    request.flush({});
+  });
+
+  it('uses an empty object for an unprotected download', () => {
+    service.authorizeDownload('share-token').subscribe();
+
+    const request = http.expectOne('/api/shares/share-token/download');
+    expect(request.request.body).toEqual({});
+    request.flush({});
+  });
 });
