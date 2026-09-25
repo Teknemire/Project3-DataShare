@@ -46,6 +46,12 @@ public class GlobalExceptionHandler {
 				.body(new ApiError("SHARE_NOT_FOUND", exception.getMessage()));
 	}
 
+	@ExceptionHandler(FileNotFoundException.class)
+	public ResponseEntity<ApiError> handleFileNotFound(FileNotFoundException exception) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(new ApiError("FILE_NOT_FOUND", exception.getMessage()));
+	}
+
 	@ExceptionHandler(ShareExpiredException.class)
 	public ResponseEntity<ApiError> handleShareExpired(ShareExpiredException exception) {
 		return ResponseEntity.status(HttpStatus.GONE)

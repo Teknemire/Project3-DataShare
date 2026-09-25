@@ -12,4 +12,8 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID
 	List<FileMetadata> findAllByExpiresAtLessThanEqual(Instant expirationLimit);
 
 	Optional<FileMetadata> findByDownloadToken(String downloadToken);
+
+	List<FileMetadata> findAllByUser_EmailOrderByCreatedAtDescIdDesc(String email);
+
+	Optional<FileMetadata> findByIdAndUser_Email(UUID id, String email);
 }
