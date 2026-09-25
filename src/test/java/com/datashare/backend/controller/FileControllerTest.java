@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,9 +15,12 @@ import com.datashare.backend.config.SecurityConfig;
 import com.datashare.backend.dto.FileResponse;
 import com.datashare.backend.dto.FileStatus;
 import com.datashare.backend.exception.FileTypeNotAllowedException;
+import com.datashare.backend.exception.FileNotFoundException;
+import com.datashare.backend.service.FileQueryService;
 import com.datashare.backend.service.FileUploadService;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -40,6 +44,46 @@ class FileControllerTest {
 
 	@MockitoBean
 	private FileUploadService fileUploadService;
+
+	@MockitoBean
+	private FileQueryService fileQueryService;
+
+	@Test
+	void listsOnlyFilesRequestedForTheAuthenticatedIdentity() throws Exception {
+		FileResponse response = new FileResponse(
+				UUID.fromString("b94ff329-ff57-4d38-b931-c013c494cc79"),
+				"photo.jpg", "image/jpeg", 4,
+				Instant.parse("2026-09-22T12:00:00Z"),
+				Instant.parse("2026-09-29T12:00:00Z"),
+				true, "http://localhost:4200/share/token", FileStatus.ACTIVE);
+		when(fileQueryService.listOwnedFiles("user@example.com")).thenReturn(List.of(response));
+
+		mockMvc.perform(get("/api/files")
+					.with(jwt().jwt(token -> token.subject("user@example.com"))))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].originalName").value("photo.jpg"))
+				.andExpect(jsonPath("$[0].status").value("ACTIVE"))
+				.andExpect(jsonPath("$[0].passwordProtected").value(true));
+	}
+
+	@Test
+	void rejectsHistoryWithoutAuthentication() throws Exception {
+		mockMvc.perform(get("/api/files"))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
+	}
+
+	@Test
+	void returnsNotFoundForAnAbsentOrForeignFile() throws Exception {
+		UUID fileId = UUID.fromString("b94ff329-ff57-4d38-b931-c013c494cc79");
+		when(fileQueryService.getOwnedFile("user@example.com", fileId))
+				.thenThrow(new FileNotFoundException());
+
+		mockMvc.perform(get("/api/files/{id}", fileId)
+					.with(jwt().jwt(token -> token.subject("user@example.com"))))
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.code").value("FILE_NOT_FOUND"));
+	}
 
 	@Test
 	void uploadsAFileForTheAuthenticatedUser() throws Exception {
