@@ -68,4 +68,20 @@ describe('FileService', () => {
     expect(request.request.body).toEqual({});
     request.flush({});
   });
+
+  it('loads the authenticated users file history', () => {
+    service.listOwnedFiles().subscribe();
+
+    const request = http.expectOne('/api/files');
+    expect(request.request.method).toBe('GET');
+    request.flush([]);
+  });
+
+  it('loads one owned file by identifier', () => {
+    service.getOwnedFile('file/id').subscribe();
+
+    const request = http.expectOne('/api/files/file%2Fid');
+    expect(request.request.method).toBe('GET');
+    request.flush({});
+  });
 });
