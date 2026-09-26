@@ -1,6 +1,5 @@
 :host {
   display: block;
-  min-height: 100vh;
 }
 
 .account-page {
@@ -226,7 +225,7 @@ h1 {
   color: #9f1c13;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .account-page {
     display: block;
   }
@@ -244,14 +243,18 @@ h1 {
   .menu-button {
     display: grid;
     gap: 0.25rem;
-    padding: 0.35rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-content: center;
+    padding: 0;
     border: 0;
     background: transparent;
     cursor: pointer;
   }
 
   .menu-button span {
-    height: 1px;
+    width: 1.5rem;
+    height: 2px;
     background: #1b1b1b;
   }
 
