@@ -1,22 +1,97 @@
 <main class="account-page">
-  <header class="site-header">
-    <a class="brand" routerLink="/" aria-label="Accueil DataShare">DataShare</a>
-    <button type="button" (click)="logout()">Se déconnecter</button>
+  <header class="mobile-header">
+    <button
+      class="menu-button"
+      type="button"
+      aria-label="Ouvrir le menu"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="account-navigation"
+      (click)="toggleMenu()"
+    >
+      <span></span><span></span><span></span>
+    </button>
+    <span class="mobile-user">{{ user()?.email || 'Mon espace' }}</span>
   </header>
 
-  <section class="account-card" aria-labelledby="account-title" aria-live="polite">
-    <h1 id="account-title">Mon espace</h1>
+  @if (menuOpen()) {
+    <button class="menu-backdrop" type="button" aria-label="Fermer le menu" (click)="closeMenu()"></button>
+  }
 
-    @if (isLoading()) {
-      <p>Chargement de votre compte…</p>
-    } @else if (errorMessage()) {
-      <p class="error" role="alert">{{ errorMessage() }}</p>
-    } @else if (user(); as currentUser) {
-      <p>Vous êtes connecté avec l’adresse&nbsp;:</p>
-      <strong>{{ currentUser.email }}</strong>
-      <a class="share-link" routerLink="/upload">Partager un fichier</a>
-    }
+  <aside id="account-navigation" class="sidebar" [class.sidebar-open]="menuOpen()">
+    <div class="sidebar-heading">
+      <a class="brand" routerLink="/" aria-label="Accueil DataShare">DataShare</a>
+      <button class="close-menu" type="button" aria-label="Fermer le menu" (click)="closeMenu()">×</button>
+    </div>
+    <nav aria-label="Navigation de l'espace personnel">
+      <a class="active" routerLink="/account" aria-current="page" (click)="closeMenu()">Mes fichiers</a>
+    </nav>
+    <small>Copyright DataShare<sup>®</sup> 2025</small>
+  </aside>
+
+  <section class="workspace" aria-labelledby="files-title">
+    <header class="workspace-toolbar">
+      <a class="add-file" routerLink="/upload">Ajouter des fichiers</a>
+      <button class="logout-button" type="button" (click)="logout()">
+        <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+          <path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10" />
+        </svg>
+        Déconnexion
+      </button>
+    </header>
+
+    <div class="history-content" aria-live="polite" [attr.aria-busy]="isLoading()">
+      <h1 id="files-title">Mes fichiers</h1>
+
+      <div class="filters" role="group" aria-label="Filtrer les fichiers">
+        <button type="button" [class.active]="selectedFilter() === 'ALL'" [attr.aria-pressed]="selectedFilter() === 'ALL'" (click)="selectFilter('ALL')">Tous</button>
+        <button type="button" [class.active]="selectedFilter() === 'ACTIVE'" [attr.aria-pressed]="selectedFilter() === 'ACTIVE'" (click)="selectFilter('ACTIVE')">Actifs</button>
+        <button type="button" [class.active]="selectedFilter() === 'EXPIRED'" [attr.aria-pressed]="selectedFilter() === 'EXPIRED'" (click)="selectFilter('EXPIRED')">Expirés</button>
+      </div>
+
+      @if (isLoading()) {
+        <p class="state-message" role="status">Chargement de vos fichiers…</p>
+      } @else if (errorMessage()) {
+        <div class="state-message error" role="alert">
+          <p>{{ errorMessage() }}</p>
+          <button type="button" (click)="loadAccount()">Réessayer</button>
+        </div>
+      } @else if (filteredFiles().length === 0) {
+        <div class="state-message empty-state">
+          <p>{{ files().length === 0 ? 'Vous n’avez encore partagé aucun fichier.' : 'Aucun fichier ne correspond à ce filtre.' }}</p>
+          @if (files().length === 0) {
+            <a routerLink="/upload">Partager un fichier</a>
+          }
+        </div>
+      } @else {
+        <ul class="file-list" aria-label="Historique des fichiers">
+          @for (file of filteredFiles(); track file.id) {
+            <li class="file-row" [class.expired]="file.status === 'EXPIRED'">
+              <svg class="file-icon" aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="M6.5 3.5h7l4 4v13h-11z" />
+                <path d="M13.5 3.5v4h4M9.5 12h5M9.5 15h5" />
+              </svg>
+              <span class="file-details">
+                <strong>{{ file.originalName }}</strong>
+                <small>
+                  {{ formatSize(file.size) }} · Envoyé le {{ sentDate(file.createdAt) }} ·
+                  <span [class.expired-label]="file.status === 'EXPIRED'">{{ expirationLabel(file) }}</span>
+                </small>
+              </span>
+              @if (file.passwordProtected) {
+                <svg class="lock-icon" aria-label="Fichier protégé par mot de passe" role="img" viewBox="0 0 24 24">
+                  <rect x="6" y="10" width="12" height="10" rx="2" />
+                  <path d="M9 10V7a3 3 0 0 1 6 0v3" />
+                </svg>
+              }
+              @if (file.status === 'ACTIVE') {
+                <a class="access-file" [href]="file.shareUrl">Accéder <span aria-hidden="true">→</span></a>
+              } @else {
+                <span class="expired-note">Le contenu n’est plus stocké</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
   </section>
-
-  <footer>Copyright DataShare<sup>®</sup> 2025</footer>
 </main>

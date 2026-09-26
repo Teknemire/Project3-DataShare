@@ -33,4 +33,12 @@ export class FileService {
       password ? { password } : {},
     );
   }
+
+  listOwnedFiles(): Observable<FileResponse[]> {
+    return this.http.get<FileResponse[]>('/api/files');
+  }
+
+  getOwnedFile(id: string): Observable<FileResponse> {
+    return this.http.get<FileResponse>(`/api/files/${encodeURIComponent(id)}`);
+  }
 }
