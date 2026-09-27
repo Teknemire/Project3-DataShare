@@ -2,10 +2,12 @@ package com.datashare.backend.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -16,6 +18,7 @@ import com.datashare.backend.dto.FileResponse;
 import com.datashare.backend.dto.FileStatus;
 import com.datashare.backend.exception.FileTypeNotAllowedException;
 import com.datashare.backend.exception.FileNotFoundException;
+import com.datashare.backend.service.FileDeletionService;
 import com.datashare.backend.service.FileQueryService;
 import com.datashare.backend.service.FileUploadService;
 import java.time.Instant;
@@ -47,6 +50,9 @@ class FileControllerTest {
 
 	@MockitoBean
 	private FileQueryService fileQueryService;
+
+	@MockitoBean
+	private FileDeletionService fileDeletionService;
 
 	@Test
 	void listsOnlyFilesRequestedForTheAuthenticatedIdentity() throws Exception {
@@ -80,6 +86,36 @@ class FileControllerTest {
 				.thenThrow(new FileNotFoundException());
 
 		mockMvc.perform(get("/api/files/{id}", fileId)
+					.with(jwt().jwt(token -> token.subject("user@example.com"))))
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.code").value("FILE_NOT_FOUND"));
+	}
+
+	@Test
+	void deletesAFileForTheAuthenticatedOwner() throws Exception {
+		UUID fileId = UUID.fromString("b94ff329-ff57-4d38-b931-c013c494cc79");
+
+		mockMvc.perform(delete("/api/files/{id}", fileId)
+					.with(jwt().jwt(token -> token.subject("user@example.com"))))
+				.andExpect(status().isNoContent());
+
+		verify(fileDeletionService).deleteOwnedFile("user@example.com", fileId);
+	}
+
+	@Test
+	void rejectsDeletionWithoutAuthentication() throws Exception {
+		mockMvc.perform(delete("/api/files/{id}", UUID.randomUUID()))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
+	}
+
+	@Test
+	void returnsNotFoundWhenDeletingAnAbsentOrForeignFile() throws Exception {
+		UUID fileId = UUID.fromString("b94ff329-ff57-4d38-b931-c013c494cc79");
+		org.mockito.Mockito.doThrow(new FileNotFoundException())
+				.when(fileDeletionService).deleteOwnedFile("user@example.com", fileId);
+
+		mockMvc.perform(delete("/api/files/{id}", fileId)
 					.with(jwt().jwt(token -> token.subject("user@example.com"))))
 				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("$.code").value("FILE_NOT_FOUND"));
