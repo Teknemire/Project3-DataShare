@@ -13,12 +13,14 @@ class SensitiveDtoLoggingTest {
 		RegisterRequest register = new RegisterRequest("private@example.com", "registration-secret");
 		LoginRequest login = new LoginRequest("private@example.com", "login-secret");
 		DownloadRequest download = new DownloadRequest("download-secret");
+		DeleteAccountRequest deleteAccount = new DeleteAccountRequest("account-secret");
 
 		assertThat(register.toString())
 				.doesNotContain("private@example.com", "registration-secret");
 		assertThat(login.toString())
 				.doesNotContain("private@example.com", "login-secret");
 		assertThat(download.toString()).doesNotContain("download-secret");
+		assertThat(deleteAccount.toString()).doesNotContain("account-secret");
 	}
 
 	@Test
