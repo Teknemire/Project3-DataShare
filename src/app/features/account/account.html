@@ -1,4 +1,8 @@
-<main class="account-page">
+<main
+  class="account-page"
+  [attr.inert]="fileToDelete() ? '' : null"
+  [attr.aria-hidden]="fileToDelete() ? 'true' : null"
+>
   <header class="mobile-header">
     <button
       class="menu-button"
@@ -40,7 +44,11 @@
     </header>
 
     <div class="history-content" aria-live="polite" [attr.aria-busy]="isLoading()">
-      <h1 id="files-title">Mes fichiers</h1>
+      <h1 id="files-title" tabindex="-1">Mes fichiers</h1>
+
+      @if (operationFeedback()) {
+        <p class="operation-feedback" role="status">{{ operationFeedback() }}</p>
+      }
 
       <div class="filters" role="group" aria-label="Filtrer les fichiers">
         <button type="button" [class.active]="selectedFilter() === 'ALL'" [attr.aria-pressed]="selectedFilter() === 'ALL'" (click)="selectFilter('ALL')">Tous</button>
@@ -83,10 +91,43 @@
                   <path d="M9 10V7a3 3 0 0 1 6 0v3" />
                 </svg>
               }
-              @if (file.status === 'ACTIVE') {
-                <a class="access-file" [href]="file.shareUrl">Accéder <span aria-hidden="true">→</span></a>
-              } @else {
-                <span class="expired-note">Le contenu n’est plus stocké</span>
+              <span class="row-actions">
+                @if (file.status === 'EXPIRED') {
+                  <span class="expired-note">Le contenu n’est plus stocké</span>
+                }
+                <button class="delete-file" type="button" (click)="requestDeletion(file, $event)">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                    <path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" />
+                  </svg>
+                  Supprimer
+                </button>
+                @if (file.status === 'ACTIVE') {
+                  <a class="access-file" [href]="file.shareUrl">Accéder <span aria-hidden="true">→</span></a>
+                }
+              </span>
+
+              <button
+                class="file-menu-button"
+                type="button"
+                [attr.aria-label]="'Actions pour ' + file.originalName"
+                [attr.aria-expanded]="openActionsId() === file.id"
+                [attr.aria-controls]="'file-actions-' + file.id"
+                (click)="toggleFileActions(file.id)"
+                (keydown.escape)="closeFileActions()"
+              >
+                <span aria-hidden="true">⋮</span>
+              </button>
+              @if (openActionsId() === file.id) {
+                <span
+                  class="file-actions-menu"
+                  [id]="'file-actions-' + file.id"
+                  (keydown.escape)="closeFileActions()"
+                >
+                  @if (file.status === 'ACTIVE') {
+                    <a [href]="file.shareUrl" (click)="closeFileActions()">Accéder</a>
+                  }
+                  <button type="button" (click)="requestDeletion(file, $event)">Supprimer</button>
+                </span>
               }
             </li>
           }
@@ -95,3 +136,36 @@
     </div>
   </section>
 </main>
+
+@if (fileToDelete(); as file) {
+  <div class="dialog-backdrop" (click)="cancelDeletion()" (keydown.escape)="cancelDeletion()">
+    <section
+      class="confirmation-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-dialog-title"
+      aria-describedby="delete-dialog-description"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="delete-dialog-title">Supprimer ce fichier&nbsp;?</h2>
+      <p id="delete-dialog-description">
+        <strong>{{ file.originalName }}</strong> sera supprimé définitivement. Le lien de partage ne fonctionnera plus.
+      </p>
+      @if (deletionError()) {
+        <p class="dialog-error" role="alert">{{ deletionError() }}</p>
+      }
+      <div class="dialog-actions">
+        <button type="button" (click)="cancelDeletion()" [disabled]="deletingId() === file.id">Annuler</button>
+        <button
+          id="confirm-file-deletion"
+          class="confirm-deletion"
+          type="button"
+          (click)="confirmDeletion()"
+          [disabled]="deletingId() === file.id"
+        >
+          {{ deletingId() === file.id ? 'Suppression…' : 'Supprimer définitivement' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}

@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
@@ -19,6 +20,8 @@ export class Account implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly fileService = inject(FileService);
   private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
+  private deletionTrigger: HTMLElement | null = null;
 
   protected readonly user = signal<UserResponse | null>(this.authService.currentUser());
   protected readonly files = signal<FileResponse[]>([]);
@@ -26,6 +29,11 @@ export class Account implements OnInit {
   protected readonly isLoading = signal(true);
   protected readonly errorMessage = signal('');
   protected readonly menuOpen = signal(false);
+  protected readonly openActionsId = signal<string | null>(null);
+  protected readonly fileToDelete = signal<FileResponse | null>(null);
+  protected readonly deletingId = signal<string | null>(null);
+  protected readonly deletionError = signal('');
+  protected readonly operationFeedback = signal('');
   protected readonly filteredFiles = computed(() => {
     const filter = this.selectedFilter();
     return filter === 'ALL' ? this.files() : this.files().filter((file) => file.status === filter);
@@ -62,6 +70,57 @@ export class Account implements OnInit {
 
   protected closeMenu(): void {
     this.menuOpen.set(false);
+  }
+
+  protected toggleFileActions(fileId: string): void {
+    this.openActionsId.update((currentId) => (currentId === fileId ? null : fileId));
+  }
+
+  protected closeFileActions(): void {
+    this.openActionsId.set(null);
+  }
+
+  protected requestDeletion(file: FileResponse, event: Event): void {
+    this.deletionTrigger = event.currentTarget as HTMLElement;
+    this.deletionError.set('');
+    this.fileToDelete.set(file);
+    setTimeout(() => this.document.getElementById('confirm-file-deletion')?.focus());
+  }
+
+  protected cancelDeletion(): void {
+    if (this.deletingId()) {
+      return;
+    }
+    this.fileToDelete.set(null);
+    this.deletionError.set('');
+    const trigger = this.deletionTrigger;
+    this.deletionTrigger = null;
+    setTimeout(() => trigger?.focus());
+  }
+
+  protected confirmDeletion(): void {
+    const file = this.fileToDelete();
+    if (!file || this.deletingId()) {
+      return;
+    }
+
+    this.deletionError.set('');
+    this.operationFeedback.set('');
+    this.deletingId.set(file.id);
+    this.fileService
+      .deleteOwnedFile(file.id)
+      .pipe(finalize(() => this.deletingId.set(null)))
+      .subscribe({
+        next: () => {
+          this.files.update((files) => files.filter((item) => item.id !== file.id));
+          this.fileToDelete.set(null);
+          this.openActionsId.set(null);
+          this.deletionTrigger = null;
+          this.operationFeedback.set(`Le fichier ${file.originalName} a été supprimé.`);
+          setTimeout(() => this.document.getElementById('files-title')?.focus());
+        },
+        error: (error: HttpErrorResponse) => this.handleDeletionError(error),
+      });
   }
 
   protected logout(): void {
@@ -102,5 +161,21 @@ export class Account implements OnInit {
     }
 
     this.errorMessage.set('Impossible de charger vos fichiers. Veuillez réessayer.');
+  }
+
+  private handleDeletionError(error: HttpErrorResponse): void {
+    if (error.status === 401) {
+      this.handleError(error);
+      return;
+    }
+    if (error.status === 503) {
+      this.deletionError.set('Le stockage est indisponible. Le fichier n’a pas été supprimé.');
+      return;
+    }
+    if (error.status === 404) {
+      this.deletionError.set('Ce fichier n’est plus disponible. Rechargez la liste.');
+      return;
+    }
+    this.deletionError.set('Impossible de supprimer le fichier. Veuillez réessayer.');
   }
 }

@@ -138,6 +138,7 @@ h1 {
 }
 
 .file-row {
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
@@ -183,9 +184,17 @@ h1 {
   stroke-width: 1.7;
 }
 
-.access-file {
+.row-actions {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+}
+
+.access-file,
+.delete-file {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.35rem;
   padding: 0.52rem 0.7rem;
   border: 1px solid #ef9870;
@@ -196,10 +205,99 @@ h1 {
   text-decoration: none;
 }
 
+.delete-file {
+  font: inherit;
+  cursor: pointer;
+}
+
+.delete-file svg {
+  width: 0.85rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
 .expired-note {
   color: #746b67;
   font-size: 0.65rem;
   text-align: right;
+}
+
+.file-menu-button,
+.file-actions-menu {
+  display: none;
+}
+
+.operation-feedback {
+  margin: 0 0 1rem;
+  color: #28633b;
+  font-size: 0.78rem;
+}
+
+.dialog-backdrop {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 45%);
+}
+
+.confirmation-dialog {
+  width: min(26rem, 100%);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 0.4rem 1.5rem rgb(0 0 0 / 25%);
+}
+
+.confirmation-dialog h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.2rem;
+}
+
+.confirmation-dialog p {
+  margin: 0;
+  color: #554b47;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.confirmation-dialog .dialog-error {
+  margin-top: 0.8rem;
+  color: #9f1c13;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.dialog-actions button {
+  min-height: 2.5rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #d7c6bd;
+  border-radius: 0.4rem;
+  background: #ffffff;
+  font: inherit;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.dialog-actions .confirm-deletion {
+  border-color: #b84039;
+  color: #ffffff;
+  background: #b84039;
+}
+
+.dialog-actions button:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .state-message {
@@ -322,13 +420,61 @@ h1 {
   }
 
   .file-row {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     gap: 0.65rem;
   }
 
-  .access-file,
-  .expired-note {
-    grid-column: 2 / -1;
-    justify-self: end;
+  .row-actions {
+    display: none;
+  }
+
+  .file-menu-button {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    padding: 0;
+    border: 1px solid #ef9870;
+    border-radius: 0.35rem;
+    color: #ac4722;
+    background: #fff7f2;
+    font-size: 1.15rem;
+    cursor: pointer;
+  }
+
+  .file-actions-menu {
+    position: absolute;
+    z-index: 1;
+    top: calc(100% - 0.35rem);
+    right: 0.5rem;
+    display: grid;
+    min-width: 7rem;
+    padding: 0.3rem;
+    border: 1px solid #efd8cc;
+    border-radius: 0.4rem;
+    background: #ffffff;
+    box-shadow: 0 0.3rem 0.8rem rgb(72 42 35 / 18%);
+  }
+
+  .file-actions-menu a,
+  .file-actions-menu button {
+    padding: 0.55rem 0.65rem;
+    border: 0;
+    color: #7d321c;
+    background: transparent;
+    font: inherit;
+    font-size: 0.75rem;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .dialog-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .dialog-actions button {
+    width: 100%;
   }
 }

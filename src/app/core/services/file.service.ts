@@ -41,4 +41,8 @@ export class FileService {
   getOwnedFile(id: string): Observable<FileResponse> {
     return this.http.get<FileResponse>(`/api/files/${encodeURIComponent(id)}`);
   }
+
+  deleteOwnedFile(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/files/${encodeURIComponent(id)}`);
+  }
 }
