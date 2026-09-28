@@ -48,9 +48,13 @@ describe('Account', () => {
       ['loadCurrentUser', 'logout'],
       { currentUser: signal<UserResponse | null>(null) },
     );
-    fileService = jasmine.createSpyObj<FileService>('FileService', ['listOwnedFiles']);
+    fileService = jasmine.createSpyObj<FileService>('FileService', [
+      'listOwnedFiles',
+      'deleteOwnedFile',
+    ]);
     authService.loadCurrentUser.and.returnValue(of(user));
     fileService.listOwnedFiles.and.returnValue(of([activeFile, expiredFile]));
+    fileService.deleteOwnedFile.and.returnValue(of(undefined));
 
     await TestBed.configureTestingModule({
       imports: [Account],
@@ -133,6 +137,70 @@ describe('Account', () => {
 
     expect(menuButton.getAttribute('aria-expanded')).toBe('false');
     expect(fixture.nativeElement.querySelector('.menu-backdrop')).toBeNull();
+  });
+
+  it('asks for confirmation and cancels without deleting the file', () => {
+    createComponent();
+
+    const deleteButton = fixture.nativeElement.querySelector('.delete-file') as HTMLButtonElement;
+    deleteButton.click();
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog).not.toBeNull();
+    expect(dialog.closest('[inert]')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('active.pdf');
+
+    const cancelButton = fixture.nativeElement.querySelector(
+      '.dialog-actions button:not(.confirm-deletion)',
+    ) as HTMLButtonElement;
+    cancelButton.click();
+    fixture.detectChanges();
+
+    expect(fileService.deleteOwnedFile).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it('deletes the confirmed file and removes it from the history', () => {
+    createComponent();
+
+    const deleteButton = fixture.nativeElement.querySelector('.delete-file') as HTMLButtonElement;
+    deleteButton.click();
+    fixture.detectChanges();
+
+    const confirmButton = fixture.nativeElement.querySelector(
+      '.confirm-deletion',
+    ) as HTMLButtonElement;
+    confirmButton.click();
+    fixture.detectChanges();
+
+    expect(fileService.deleteOwnedFile).toHaveBeenCalledOnceWith('active-id');
+    const remainingRows = fixture.nativeElement.querySelectorAll('.file-row');
+    expect(remainingRows.length).toBe(1);
+    expect(remainingRows[0].textContent).toContain('expired.pdf');
+    expect(remainingRows[0].textContent).not.toContain('active.pdf');
+    expect(fixture.nativeElement.textContent).toContain('Le fichier active.pdf a été supprimé.');
+  });
+
+  it('keeps the file and explains when storage deletion fails', () => {
+    fileService.deleteOwnedFile.and.returnValue(
+      throwError(() => new HttpErrorResponse({ status: 503 })),
+    );
+    createComponent();
+
+    const deleteButton = fixture.nativeElement.querySelector('.delete-file') as HTMLButtonElement;
+    deleteButton.click();
+    fixture.detectChanges();
+    const confirmButton = fixture.nativeElement.querySelector(
+      '.confirm-deletion',
+    ) as HTMLButtonElement;
+    confirmButton.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.file-row').length).toBe(2);
+    expect(fixture.nativeElement.querySelector('.dialog-error')?.textContent).toContain(
+      'n’a pas été supprimé',
+    );
   });
 
   it('logs out and redirects when the API rejects the JWT', () => {

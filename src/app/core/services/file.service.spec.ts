@@ -84,4 +84,12 @@ describe('FileService', () => {
     expect(request.request.method).toBe('GET');
     request.flush({});
   });
+
+  it('deletes one owned file by identifier', () => {
+    service.deleteOwnedFile('file/id').subscribe();
+
+    const request = http.expectOne('/api/files/file%2Fid');
+    expect(request.request.method).toBe('DELETE');
+    request.flush(null);
+  });
 });
