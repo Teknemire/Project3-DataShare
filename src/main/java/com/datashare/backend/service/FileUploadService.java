@@ -53,7 +53,10 @@ public class FileUploadService {
 		FileValidationService.ValidatedFile validatedFile = fileValidationService.validate(multipartFile);
 		int validatedExpirationDays = validateExpiration(expirationDays);
 		String passwordHash = validateAndHashPassword(downloadPassword);
-		User owner = resolveOwner(authenticatedEmail);
+		User owner = authenticatedEmail == null
+				? null
+				: userRepository.findByEmail(authenticatedEmail)
+						.orElseThrow(CurrentUserNotFoundException::new);
 
 		String storageKey = UUID.randomUUID().toString();
 		String downloadToken = generateDownloadToken();
@@ -93,14 +96,6 @@ public class FileUploadService {
 			throw new InvalidFileException("L'expiration doit être comprise entre 1 et 7 jours.");
 		}
 		return value;
-	}
-
-	private User resolveOwner(String authenticatedEmail) {
-		if (authenticatedEmail == null) {
-			return null;
-		}
-		return userRepository.findByEmail(authenticatedEmail)
-				.orElseThrow(CurrentUserNotFoundException::new);
 	}
 
 	private String validateAndHashPassword(String password) {
