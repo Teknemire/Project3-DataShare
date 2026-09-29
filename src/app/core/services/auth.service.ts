@@ -1,7 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { LoginRequest, LoginResponse, RegisterRequest, UserResponse } from '../models/auth.models';
+import {
+  DeleteAccountRequest,
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  UserResponse,
+} from '../models/auth.models';
 import { TokenStorageService } from './token-storage.service';
 
 @Injectable({ providedIn: 'root' })
@@ -28,6 +34,12 @@ export class AuthService {
     return this.http
       .get<UserResponse>('/api/auth/me')
       .pipe(tap((user) => this.currentUser.set(user)));
+  }
+
+  deleteAccount(request: DeleteAccountRequest): Observable<void> {
+    return this.http
+      .delete<void>('/api/users/me', { body: request })
+      .pipe(tap(() => this.logout()));
   }
 
   logout(): void {

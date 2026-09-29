@@ -39,5 +39,12 @@ export const routes: Routes = [
       import('./features/account/account').then((component) => component.Account),
     title: 'Mon espace | DataShare',
   },
+  {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/profile/profile').then((component) => component.Profile),
+    title: 'Mon profil | DataShare',
+  },
   { path: '**', redirectTo: '' },
 ];

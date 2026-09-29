@@ -8,6 +8,10 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface DeleteAccountRequest {
+  password: string;
+}
+
 export interface LoginResponse {
   accessToken: string;
   tokenType: 'Bearer';

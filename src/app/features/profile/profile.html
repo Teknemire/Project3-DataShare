@@ -1,0 +1,146 @@
+@if (accountDeleted()) {
+  <main class="deleted-page" aria-labelledby="account-deleted-title">
+    <section class="deleted-card">
+      <a class="brand dark" routerLink="/" aria-label="Accueil DataShare">DataShare</a>
+      <h1 id="account-deleted-title" tabindex="-1">Votre compte a été supprimé</h1>
+      <p>Vos fichiers et les métadonnées associées ont été supprimés définitivement.</p>
+      <a class="primary-link" routerLink="/">Retour à l’accueil</a>
+    </section>
+  </main>
+} @else {
+  <main
+    class="profile-page"
+    [attr.inert]="deletionDialogOpen() ? '' : null"
+    [attr.aria-hidden]="deletionDialogOpen() ? 'true' : null"
+  >
+    <header class="mobile-header">
+      <button
+        class="menu-button"
+        type="button"
+        aria-label="Ouvrir le menu"
+        [attr.aria-expanded]="menuOpen()"
+        aria-controls="profile-navigation"
+        (click)="toggleMenu()"
+      >
+        <span></span><span></span><span></span>
+      </button>
+      <span class="mobile-user">{{ user()?.email || 'Mon profil' }}</span>
+    </header>
+
+    @if (menuOpen()) {
+      <button class="menu-backdrop" type="button" aria-label="Fermer le menu" (click)="closeMenu()"></button>
+    }
+
+    <aside id="profile-navigation" class="sidebar" [class.sidebar-open]="menuOpen()">
+      <div class="sidebar-heading">
+        <a class="brand" routerLink="/" aria-label="Accueil DataShare">DataShare</a>
+        <button class="close-menu" type="button" aria-label="Fermer le menu" (click)="closeMenu()">×</button>
+      </div>
+      <nav aria-label="Navigation de l'espace personnel">
+        <a routerLink="/account" (click)="closeMenu()">Mes fichiers</a>
+        <a class="active" routerLink="/profile" aria-current="page" (click)="closeMenu()">Mon profil</a>
+      </nav>
+      <small>Copyright DataShare<sup>®</sup> 2025</small>
+    </aside>
+
+    <section class="workspace" aria-labelledby="profile-title">
+      <header class="workspace-toolbar">
+        <a class="add-file" routerLink="/upload">Ajouter des fichiers</a>
+        <button class="logout-button" type="button" (click)="logout()">
+          <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+            <path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10" />
+          </svg>
+          Déconnexion
+        </button>
+      </header>
+
+      <div class="profile-content">
+        <h1 id="profile-title">Mon profil</h1>
+
+        @if (isLoading()) {
+          <p class="state-message" role="status">Chargement de votre profil…</p>
+        } @else if (loadError()) {
+          <div class="state-message error" role="alert">
+            <p>{{ loadError() }}</p>
+            <button type="button" (click)="loadProfile()">Réessayer</button>
+          </div>
+        } @else {
+          <section class="profile-card" aria-labelledby="personal-data-title">
+            <h2 id="personal-data-title">Informations du compte</h2>
+            <dl>
+              <div>
+                <dt>Adresse email</dt>
+                <dd>{{ user()?.email }}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="danger-zone" aria-labelledby="delete-account-title">
+            <h2 id="delete-account-title">Supprimer mon compte</h2>
+            <p>
+              Cette action supprimera définitivement votre compte, tous vos fichiers et leurs liens de partage.
+              Elle est irréversible.
+            </p>
+            <button class="delete-account" type="button" (click)="openDeletionDialog($event)">
+              Supprimer mon compte
+            </button>
+          </section>
+        }
+      </div>
+    </section>
+  </main>
+}
+
+@if (deletionDialogOpen()) {
+  <div class="dialog-backdrop" (click)="cancelDeletion()" (keydown.escape)="cancelDeletion()">
+    <section
+      class="confirmation-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="account-dialog-title"
+      aria-describedby="account-dialog-description"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="account-dialog-title">Confirmer la suppression</h2>
+      <p id="account-dialog-description">
+        Tous vos fichiers, leurs liens et votre compte seront supprimés définitivement.
+      </p>
+
+      <form [formGroup]="deletionForm" (ngSubmit)="confirmDeletion()" novalidate>
+        <div class="field">
+          <label for="account-password">Mot de passe actuel</label>
+          <input
+            id="account-password"
+            type="password"
+            autocomplete="current-password"
+            formControlName="password"
+            [attr.aria-invalid]="deletionForm.controls.password.invalid && deletionForm.controls.password.touched"
+            [attr.aria-describedby]="deletionForm.controls.password.invalid && deletionForm.controls.password.touched ? 'account-password-error' : null"
+          />
+          @if (deletionForm.controls.password.invalid && deletionForm.controls.password.touched) {
+            <p id="account-password-error" class="field-error">Le mot de passe actuel est obligatoire.</p>
+          }
+        </div>
+
+        <label class="understanding-check">
+          <input type="checkbox" formControlName="understood" />
+          <span>Je comprends que cette action est irréversible.</span>
+        </label>
+        @if (deletionForm.controls.understood.invalid && deletionForm.controls.understood.touched) {
+          <p class="field-error">Vous devez confirmer avoir compris les conséquences.</p>
+        }
+
+        @if (deletionError()) {
+          <p class="dialog-error" role="alert">{{ deletionError() }}</p>
+        }
+
+        <div class="dialog-actions">
+          <button type="button" (click)="cancelDeletion()" [disabled]="isDeleting()">Annuler</button>
+          <button class="confirm-account-deletion" type="submit" [disabled]="deletionForm.invalid || isDeleting()">
+            {{ isDeleting() ? 'Suppression…' : 'Supprimer définitivement mon compte' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}
