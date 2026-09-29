@@ -72,12 +72,11 @@ public class FileController {
 	}
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	@Operation(summary = "Téléverser un fichier")
-	@SecurityRequirement(name = "bearerAuth")
+	@Operation(summary = "Téléverser un fichier avec ou sans compte")
 	@ApiResponses({
 			@ApiResponse(responseCode = "201", description = "Fichier téléversé et lien créé"),
 			@ApiResponse(responseCode = "400", description = "Paramètres invalides"),
-			@ApiResponse(responseCode = "401", description = "Authentification requise"),
+			@ApiResponse(responseCode = "401", description = "JWT fourni invalide"),
 			@ApiResponse(responseCode = "413", description = "Fichier supérieur à 1 Go"),
 			@ApiResponse(responseCode = "415", description = "Type de fichier interdit"),
 			@ApiResponse(responseCode = "503", description = "Stockage indisponible")
@@ -89,7 +88,7 @@ public class FileController {
 			Authentication authentication
 	) {
 		FileResponse response = fileUploadService.upload(
-				authentication.getName(),
+				authentication == null ? null : authentication.getName(),
 				file,
 				expirationDays,
 				password

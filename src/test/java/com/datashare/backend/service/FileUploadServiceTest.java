@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.datashare.backend.dto.FileResponse;
@@ -72,6 +73,24 @@ class FileUploadServiceTest {
 		assertThat(response.shareUrl()).startsWith("http://localhost:4200/share/");
 		assertThat(response.status()).isEqualTo(FileStatus.ACTIVE);
 		assertThat(response.passwordProtected()).isTrue();
+	}
+
+	@Test
+	void storesAnAnonymousUploadWithoutAnOwner() {
+		MockMultipartFile file = new MockMultipartFile(
+				"file", "photo.jpg", "image/jpeg", new byte[] {1, 2, 3, 4});
+		when(fileMetadataRepository.saveAndFlush(any(FileMetadata.class)))
+				.thenAnswer(invocation -> invocation.getArgument(0));
+
+		FileResponse response = service.upload(null, file, null, null);
+
+		ArgumentCaptor<FileMetadata> metadataCaptor = ArgumentCaptor.forClass(FileMetadata.class);
+		verify(fileMetadataRepository).saveAndFlush(metadataCaptor.capture());
+		FileMetadata metadata = metadataCaptor.getValue();
+		assertThat(metadata.getUser()).isNull();
+		assertThat(metadata.getExpiresAt()).isEqualTo(metadata.getCreatedAt().plusSeconds(7 * 86_400L));
+		assertThat(response.shareUrl()).startsWith("http://localhost:4200/share/");
+		verifyNoInteractions(userRepository);
 	}
 
 	@Test

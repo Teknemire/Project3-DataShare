@@ -1,6 +1,7 @@
 package com.datashare.backend.service;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 import com.datashare.backend.entity.FileMetadata;
@@ -43,6 +44,20 @@ class FileExpirationServiceTest {
 
 		verify(storageService).delete("first");
 		verify(storageService).delete("second");
+		verify(repository, never()).delete(first);
+		verify(repository, never()).delete(second);
+	}
+
+	@Test
+	void removesAnonymousMetadataAfterItsExpiredContent() {
+		FileMetadata anonymousFile = expiredFile("anonymous", null);
+		when(repository.findAllByExpiresAtLessThanEqual(ArgumentMatchers.any(Instant.class)))
+				.thenReturn(List.of(anonymousFile));
+
+		service.deleteExpiredContents();
+
+		verify(storageService).delete("anonymous");
+		verify(repository).delete(anonymousFile);
 	}
 
 	private FileMetadata expiredFile(String key, User owner) {

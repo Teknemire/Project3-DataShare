@@ -22,8 +22,11 @@ public class FileExpirationService {
 		for (FileMetadata file : fileMetadataRepository.findAllByExpiresAtLessThanEqual(Instant.now())) {
 			try {
 				storageService.delete(file.getStorageKey());
+				if (file.getUser() == null) {
+					fileMetadataRepository.delete(file);
+				}
 			} catch (RuntimeException exception) {
-				log.warn("La suppression d'un contenu expiré a échoué et sera retentée.", exception);
+				log.warn("La suppression d'un transfert expiré a échoué et sera retentée.", exception);
 			}
 		}
 	}

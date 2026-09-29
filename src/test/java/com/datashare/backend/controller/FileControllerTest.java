@@ -2,6 +2,7 @@ package com.datashare.backend.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -146,13 +147,23 @@ class FileControllerTest {
 	}
 
 	@Test
-	void rejectsUploadWithoutAuthentication() throws Exception {
+	void uploadsAFileWithoutAuthentication() throws Exception {
 		MockMultipartFile file = new MockMultipartFile(
 				"file", "photo.jpg", "image/jpeg", new byte[] {1, 2, 3, 4});
+		FileResponse response = new FileResponse(
+				UUID.fromString("b94ff329-ff57-4d38-b931-c013c494cc79"),
+				"photo.jpg", "image/jpeg", 4,
+				Instant.parse("2026-09-22T12:00:00Z"),
+				Instant.parse("2026-09-29T12:00:00Z"),
+				false, "http://localhost:4200/share/token", FileStatus.ACTIVE);
+		when(fileUploadService.upload(isNull(), any(), eq(7), isNull()))
+				.thenReturn(response);
 
 		mockMvc.perform(multipart("/api/files").file(file))
-				.andExpect(status().isUnauthorized())
-				.andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.shareUrl").value("http://localhost:4200/share/token"));
+
+		verify(fileUploadService).upload(isNull(), any(), eq(7), isNull());
 	}
 
 	@Test
