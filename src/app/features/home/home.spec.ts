@@ -17,11 +17,11 @@ describe('Home', () => {
 
   afterEach(() => tokenStorage.clear());
 
-  it('directs a visitor to login before sharing a file', () => {
+  it('lets a visitor share anonymously while offering login', () => {
     const fixture = createComponent();
-    const links = fixture.nativeElement.querySelectorAll('a[href="/login"]');
 
-    expect(links.length).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('a[href="/login"]').length).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('a[href="/upload"]').length).toBe(1);
     expect(fixture.nativeElement.querySelector('h1')?.textContent).toContain(
       'Tu veux partager un fichier',
     );

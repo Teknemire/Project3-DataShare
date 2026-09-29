@@ -6,6 +6,7 @@ import { finalize } from 'rxjs';
 import { ApiError } from '../../core/models/auth.models';
 import { FileResponse } from '../../core/models/file.models';
 import { FileService } from '../../core/services/file.service';
+import { TokenStorageService } from '../../core/services/token-storage.service';
 
 const MAX_FILE_SIZE = 1_000_000_000;
 const ALLOWED_EXTENSIONS = new Set([
@@ -25,6 +26,7 @@ const ALLOWED_EXTENSIONS = new Set([
 })
 export class Upload {
   private readonly fileService = inject(FileService);
+  private readonly tokenStorage = inject(TokenStorageService);
 
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
 
@@ -33,7 +35,6 @@ export class Upload {
   protected readonly feedback = signal('');
   protected readonly copyFeedback = signal('');
   protected readonly isSubmitting = signal(false);
-
   protected readonly uploadForm = new FormGroup({
     password: new FormControl('', {
       nonNullable: true,
@@ -44,6 +45,14 @@ export class Upload {
       validators: [Validators.required, Validators.min(1), Validators.max(7)],
     }),
   });
+
+  protected get isAuthenticated(): boolean {
+    return this.tokenStorage.get() !== null;
+  }
+
+  protected get accountDestination(): string {
+    return this.isAuthenticated ? '/account' : '/login';
+  }
 
   protected chooseFile(): void {
     this.fileInput?.nativeElement.click();

@@ -1,7 +1,9 @@
 <main class="upload-page">
   <header class="site-header">
     <a class="brand" routerLink="/" aria-label="Accueil DataShare">DataShare</a>
-    <a class="account-link" routerLink="/account">Mon espace</a>
+    <a class="account-link" [routerLink]="accountDestination">
+      {{ isAuthenticated ? 'Mon espace' : 'Se connecter' }}
+    </a>
   </header>
 
   <section

@@ -3,11 +3,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { FileService } from '../../core/services/file.service';
+import { TokenStorageService } from '../../core/services/token-storage.service';
 import { Upload } from './upload';
 
 describe('Upload', () => {
   let fixture: ComponentFixture<Upload>;
   let fileService: jasmine.SpyObj<FileService>;
+  let tokenStorage: TokenStorageService;
 
   beforeEach(async () => {
     fileService = jasmine.createSpyObj<FileService>('FileService', ['upload']);
@@ -16,8 +18,21 @@ describe('Upload', () => {
       providers: [{ provide: FileService, useValue: fileService }, provideRouter([])],
     }).compileComponents();
 
+    tokenStorage = TestBed.inject(TokenStorageService);
+    tokenStorage.clear();
     fixture = TestBed.createComponent(Upload);
     fixture.detectChanges();
+  });
+
+  afterEach(() => tokenStorage.clear());
+
+  it('offers login without blocking an anonymous upload', () => {
+    expect(fixture.nativeElement.querySelector('.account-link')?.getAttribute('href')).toBe(
+      '/login',
+    );
+    expect(fixture.nativeElement.querySelector('.account-link')?.textContent).toContain(
+      'Se connecter',
+    );
   });
 
   it('rejects a forbidden extension before calling the API', () => {

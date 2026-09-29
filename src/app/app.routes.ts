@@ -21,7 +21,6 @@ export const routes: Routes = [
   },
   {
     path: 'upload',
-    canActivate: [authGuard],
     loadComponent: () =>
       import('./features/upload/upload').then((component) => component.Upload),
     title: 'Partager un fichier | DataShare',
