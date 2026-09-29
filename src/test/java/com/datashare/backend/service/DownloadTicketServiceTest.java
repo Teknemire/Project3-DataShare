@@ -46,7 +46,9 @@ class DownloadTicketServiceTest {
 	@Test
 	void rejectsAnAlteredOrExpiredTicket() {
 		String ticket = service.generate("share-token", Instant.now().plusSeconds(3_600)).value();
-		String alteredTicket = ticket.substring(0, ticket.length() - 1) + "A";
+		char lastCharacter = ticket.charAt(ticket.length() - 1);
+		String alteredTicket = ticket.substring(0, ticket.length() - 1)
+				+ (lastCharacter == 'A' ? 'B' : 'A');
 
 		assertThatThrownBy(() -> service.validate("share-token", alteredTicket))
 				.isInstanceOf(InvalidDownloadTicketException.class);
