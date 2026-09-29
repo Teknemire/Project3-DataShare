@@ -71,4 +71,20 @@ describe('AuthService', () => {
     expect(tokenStorage.get()).toBeNull();
     expect(service.currentUser()).toBeNull();
   });
+
+  it('deletes the current account then clears authentication data', () => {
+    tokenStorage.set('signed-token');
+    service.currentUser.set(user);
+
+    service.deleteAccount({ password: 'current-password' }).subscribe();
+    const request = http.expectOne('/api/users/me');
+
+    expect(request.request.method).toBe('DELETE');
+    expect(request.request.headers.get('Authorization')).toBe('Bearer signed-token');
+    expect(request.request.body).toEqual({ password: 'current-password' });
+    request.flush(null);
+
+    expect(tokenStorage.get()).toBeNull();
+    expect(service.currentUser()).toBeNull();
+  });
 });
