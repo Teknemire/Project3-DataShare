@@ -31,6 +31,8 @@
 }
 
 .sidebar nav {
+  display: grid;
+  gap: 0.35rem;
   margin-top: 2.4rem;
 }
 
@@ -39,9 +41,13 @@
   padding: 0.65rem 0.85rem;
   border-radius: 0.55rem;
   color: #5b2e28;
-  background: rgb(255 255 255 / 58%);
+  background: transparent;
   font-size: 0.78rem;
   text-decoration: none;
+}
+
+.sidebar nav a.active {
+  background: rgb(255 255 255 / 58%);
 }
 
 .sidebar small {
