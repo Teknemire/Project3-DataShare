@@ -11,13 +11,7 @@ import { TokenStorageService } from '../../core/services/token-storage.service';
 export class Home {
   private readonly tokenStorage = inject(TokenStorageService);
 
+  protected readonly isAuthenticated = this.tokenStorage.get() !== null;
+  protected readonly accountDestination = this.isAuthenticated ? '/account' : '/login';
   protected readonly shareDestination = '/upload';
-
-  protected get isAuthenticated(): boolean {
-    return this.tokenStorage.get() !== null;
-  }
-
-  protected get accountDestination(): string {
-    return this.isAuthenticated ? '/account' : '/login';
-  }
 }

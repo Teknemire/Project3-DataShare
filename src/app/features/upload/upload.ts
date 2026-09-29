@@ -35,6 +35,8 @@ export class Upload {
   protected readonly feedback = signal('');
   protected readonly copyFeedback = signal('');
   protected readonly isSubmitting = signal(false);
+  protected readonly isAuthenticated = this.tokenStorage.get() !== null;
+  protected readonly accountDestination = this.isAuthenticated ? '/account' : '/login';
   protected readonly uploadForm = new FormGroup({
     password: new FormControl('', {
       nonNullable: true,
@@ -45,14 +47,6 @@ export class Upload {
       validators: [Validators.required, Validators.min(1), Validators.max(7)],
     }),
   });
-
-  protected get isAuthenticated(): boolean {
-    return this.tokenStorage.get() !== null;
-  }
-
-  protected get accountDestination(): string {
-    return this.isAuthenticated ? '/account' : '/login';
-  }
 
   protected chooseFile(): void {
     this.fileInput?.nativeElement.click();
