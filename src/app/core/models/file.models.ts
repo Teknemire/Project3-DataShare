@@ -10,11 +10,13 @@ export interface FileResponse {
   passwordProtected: boolean;
   shareUrl: string;
   status: FileStatus;
+  tags: string[];
 }
 
 export interface UploadOptions {
   expirationDays: number;
   password?: string;
+  tags?: string[];
 }
 
 export interface SharedFileResponse {

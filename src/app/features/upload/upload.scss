@@ -172,6 +172,14 @@ input[aria-invalid='true'] {
   margin: 0.35rem 0 0;
 }
 
+.field-help {
+  display: block;
+  margin-top: 0.35rem;
+  color: #686868;
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
 .submit-button,
 .copy-button,
 .change-button {

@@ -85,6 +85,9 @@
                   {{ formatSize(file.size) }} · Envoyé le {{ sentDate(file.createdAt) }} ·
                   <span [class.expired-label]="file.status === 'EXPIRED'">{{ expirationLabel(file) }}</span>
                 </small>
+                @if (file.tags.length > 0) {
+                  <small>Tags : {{ file.tags.join(', ') }}</small>
+                }
               </span>
               @if (file.passwordProtected) {
                 <svg class="lock-icon" aria-label="Fichier protégé par mot de passe" role="img" viewBox="0 0 24 24">

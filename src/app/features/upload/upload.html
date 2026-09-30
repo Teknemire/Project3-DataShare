@@ -120,6 +120,28 @@
           </select>
         </div>
 
+        @if (isAuthenticated) {
+          <div class="field">
+            <label for="tags">Tags <span>(optionnel)</span></label>
+            <input
+              id="tags"
+              type="text"
+              formControlName="tags"
+              placeholder="projet, client, urgent"
+              [attr.aria-describedby]="uploadForm.controls.tags.invalid && uploadForm.controls.tags.touched ? 'tags-help tags-error' : 'tags-help'"
+              [attr.aria-invalid]="uploadForm.controls.tags.invalid && uploadForm.controls.tags.touched"
+            />
+            <small id="tags-help" class="field-help">
+              Séparez les tags par des virgules. 30 caractères maximum par tag.
+            </small>
+            @if (uploadForm.controls.tags.touched && uploadForm.controls.tags.hasError('tagTooLong')) {
+              <p id="tags-error" class="field-error">Chaque tag doit contenir 30 caractères maximum.</p>
+            } @else if (uploadForm.controls.tags.touched && uploadForm.controls.tags.hasError('duplicateTags')) {
+              <p id="tags-error" class="field-error">Un même tag ne peut pas être ajouté plusieurs fois.</p>
+            }
+          </div>
+        }
+
         <button class="submit-button" type="submit" [disabled]="isSubmitting() || !selectedFile()">
           {{ isSubmitting() ? 'Téléversement…' : 'Téléverser' }}
         </button>

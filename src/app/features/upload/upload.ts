@@ -1,6 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ApiError } from '../../core/models/auth.models';
@@ -9,6 +16,7 @@ import { FileService } from '../../core/services/file.service';
 import { TokenStorageService } from '../../core/services/token-storage.service';
 
 const MAX_FILE_SIZE = 1_000_000_000;
+const MAX_TAG_LENGTH = 30;
 const ALLOWED_EXTENSIONS = new Set([
   'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'tif', 'tiff', 'heic', 'heif',
   'mp4', 'mov', 'avi', 'mkv', 'webm', 'mpeg', 'mpg', 'm4v',
@@ -17,6 +25,22 @@ const ALLOWED_EXTENSIONS = new Set([
   'pdf', 'txt', 'csv', 'rtf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
   'odt', 'ods', 'odp',
 ]);
+
+function parseTags(value: string): string[] {
+  return value
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter((tag) => tag.length > 0);
+}
+
+function validateTags(control: AbstractControl<string>): ValidationErrors | null {
+  const tags = parseTags(control.value);
+  if (tags.some((tag) => tag.length > MAX_TAG_LENGTH)) {
+    return { tagTooLong: true };
+  }
+  const normalizedTags = tags.map((tag) => tag.toLocaleLowerCase());
+  return new Set(normalizedTags).size === normalizedTags.length ? null : { duplicateTags: true };
+}
 
 @Component({
   selector: 'app-upload',
@@ -45,6 +69,10 @@ export class Upload {
     expirationDays: new FormControl(7, {
       nonNullable: true,
       validators: [Validators.required, Validators.min(1), Validators.max(7)],
+    }),
+    tags: new FormControl('', {
+      nonNullable: true,
+      validators: [validateTags],
     }),
   });
 
@@ -100,6 +128,7 @@ export class Upload {
       .upload(file, {
         expirationDays: values.expirationDays,
         password: values.password || undefined,
+        tags: this.isAuthenticated ? parseTags(values.tags) : undefined,
       })
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({

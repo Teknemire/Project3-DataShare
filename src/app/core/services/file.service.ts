@@ -19,6 +19,7 @@ export class FileService {
     if (options.password) {
       body.append('password', options.password);
     }
+    options.tags?.forEach((tag) => body.append('tags', tag));
 
     return this.http.post<FileResponse>('/api/files', body);
   }
