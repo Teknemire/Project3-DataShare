@@ -19,6 +19,7 @@ import com.datashare.backend.dto.FileResponse;
 import com.datashare.backend.dto.FileStatus;
 import com.datashare.backend.exception.FileTypeNotAllowedException;
 import com.datashare.backend.exception.FileNotFoundException;
+import com.datashare.backend.exception.TagAuthenticationRequiredException;
 import com.datashare.backend.service.FileDeletionService;
 import com.datashare.backend.service.FileQueryService;
 import com.datashare.backend.service.FileUploadService;
@@ -62,7 +63,7 @@ class FileControllerTest {
 				"photo.jpg", "image/jpeg", 4,
 				Instant.parse("2026-09-22T12:00:00Z"),
 				Instant.parse("2026-09-29T12:00:00Z"),
-				true, "http://localhost:4200/share/token", FileStatus.ACTIVE);
+				true, "http://localhost:4200/share/token", FileStatus.ACTIVE, List.of("Projet"));
 		when(fileQueryService.listOwnedFiles("user@example.com")).thenReturn(List.of(response));
 
 		mockMvc.perform(get("/api/files")
@@ -70,7 +71,8 @@ class FileControllerTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].originalName").value("photo.jpg"))
 				.andExpect(jsonPath("$[0].status").value("ACTIVE"))
-				.andExpect(jsonPath("$[0].passwordProtected").value(true));
+				.andExpect(jsonPath("$[0].passwordProtected").value(true))
+				.andExpect(jsonPath("$[0].tags[0]").value("Projet"));
 	}
 
 	@Test
@@ -131,17 +133,20 @@ class FileControllerTest {
 				"photo.jpg", "image/jpeg", 4,
 				Instant.parse("2026-09-22T12:00:00Z"),
 				Instant.parse("2026-09-29T12:00:00Z"),
-				false, "http://localhost:4200/share/token", FileStatus.ACTIVE);
-		when(fileUploadService.upload(eq("user@example.com"), any(), eq(7), eq(null)))
+				false, "http://localhost:4200/share/token", FileStatus.ACTIVE, List.of("Projet", "Urgent"));
+		when(fileUploadService.upload(eq("user@example.com"), any(), eq(7), eq(null),
+				eq(List.of("Projet", "Urgent"))))
 				.thenReturn(response);
 
 		mockMvc.perform(multipart("/api/files")
 					.file(file)
 					.param("expirationDays", "7")
+					.param("tags", "Projet", "Urgent")
 					.with(jwt().jwt(token -> token.subject("user@example.com"))))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.originalName").value("photo.jpg"))
 				.andExpect(jsonPath("$.shareUrl").value("http://localhost:4200/share/token"))
+				.andExpect(jsonPath("$.tags.length()").value(2))
 				.andExpect(jsonPath("$.storageKey").doesNotExist())
 				.andExpect(jsonPath("$.downloadPasswordHash").doesNotExist());
 	}
@@ -155,15 +160,29 @@ class FileControllerTest {
 				"photo.jpg", "image/jpeg", 4,
 				Instant.parse("2026-09-22T12:00:00Z"),
 				Instant.parse("2026-09-29T12:00:00Z"),
-				false, "http://localhost:4200/share/token", FileStatus.ACTIVE);
-		when(fileUploadService.upload(isNull(), any(), eq(7), isNull()))
+				false, "http://localhost:4200/share/token", FileStatus.ACTIVE, List.of());
+		when(fileUploadService.upload(isNull(), any(), eq(7), isNull(), isNull()))
 				.thenReturn(response);
 
 		mockMvc.perform(multipart("/api/files").file(file))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.shareUrl").value("http://localhost:4200/share/token"));
 
-		verify(fileUploadService).upload(isNull(), any(), eq(7), isNull());
+		verify(fileUploadService).upload(isNull(), any(), eq(7), isNull(), isNull());
+	}
+
+	@Test
+	void rejectsAnonymousTagsWithAnAuthenticationError() throws Exception {
+		MockMultipartFile file = new MockMultipartFile(
+				"file", "photo.jpg", "image/jpeg", new byte[] {1, 2, 3, 4});
+		when(fileUploadService.upload(isNull(), any(), eq(7), isNull(), eq(List.of("Projet"))))
+				.thenThrow(new TagAuthenticationRequiredException());
+
+		mockMvc.perform(multipart("/api/files")
+					.file(file)
+					.param("tags", "Projet"))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.code").value("TAG_AUTHENTICATION_REQUIRED"));
 	}
 
 	@Test
@@ -183,7 +202,7 @@ class FileControllerTest {
 	void returnsUnsupportedMediaTypeForAForbiddenFile() throws Exception {
 		MockMultipartFile file = new MockMultipartFile(
 				"file", "program.exe", "application/octet-stream", new byte[] {'M', 'Z'});
-		when(fileUploadService.upload(eq("user@example.com"), any(), eq(7), eq(null)))
+		when(fileUploadService.upload(eq("user@example.com"), any(), eq(7), eq(null), isNull()))
 				.thenThrow(new FileTypeNotAllowedException());
 
 		mockMvc.perform(multipart("/api/files")

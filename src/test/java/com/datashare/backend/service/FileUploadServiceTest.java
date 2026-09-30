@@ -14,9 +14,11 @@ import com.datashare.backend.dto.FileStatus;
 import com.datashare.backend.entity.FileMetadata;
 import com.datashare.backend.entity.User;
 import com.datashare.backend.exception.InvalidFileException;
+import com.datashare.backend.exception.TagAuthenticationRequiredException;
 import com.datashare.backend.repository.FileMetadataRepository;
 import com.datashare.backend.repository.UserRepository;
 import com.datashare.backend.storage.StorageService;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,17 +64,20 @@ class FileUploadServiceTest {
 		when(fileMetadataRepository.saveAndFlush(any(FileMetadata.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
-		FileResponse response = service.upload("user@example.com", file, 7, "secret1");
+		FileResponse response = service.upload(
+				"user@example.com", file, 7, "secret1", List.of("Projet", " Urgent "));
 
 		ArgumentCaptor<FileMetadata> metadataCaptor = ArgumentCaptor.forClass(FileMetadata.class);
 		verify(fileMetadataRepository).saveAndFlush(metadataCaptor.capture());
 		FileMetadata metadata = metadataCaptor.getValue();
 		assertThat(metadata.getOriginalName()).isEqualTo("photo.jpg");
 		assertThat(metadata.getExpiresAt()).isEqualTo(metadata.getCreatedAt().plusSeconds(7 * 86_400L));
+		assertThat(metadata.getTags()).containsExactly("Projet", "Urgent");
 		assertThat(new BCryptPasswordEncoder().matches("secret1", metadata.getDownloadPasswordHash())).isTrue();
 		assertThat(response.shareUrl()).startsWith("http://localhost:4200/share/");
 		assertThat(response.status()).isEqualTo(FileStatus.ACTIVE);
 		assertThat(response.passwordProtected()).isTrue();
+		assertThat(response.tags()).containsExactly("Projet", "Urgent");
 	}
 
 	@Test
@@ -82,7 +87,7 @@ class FileUploadServiceTest {
 		when(fileMetadataRepository.saveAndFlush(any(FileMetadata.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
-		FileResponse response = service.upload(null, file, null, null);
+		FileResponse response = service.upload(null, file, null, null, null);
 
 		ArgumentCaptor<FileMetadata> metadataCaptor = ArgumentCaptor.forClass(FileMetadata.class);
 		verify(fileMetadataRepository).saveAndFlush(metadataCaptor.capture());
@@ -90,7 +95,42 @@ class FileUploadServiceTest {
 		assertThat(metadata.getUser()).isNull();
 		assertThat(metadata.getExpiresAt()).isEqualTo(metadata.getCreatedAt().plusSeconds(7 * 86_400L));
 		assertThat(response.shareUrl()).startsWith("http://localhost:4200/share/");
+		assertThat(response.tags()).isEmpty();
 		verifyNoInteractions(userRepository);
+	}
+
+	@Test
+	void rejectsTagsForAnAnonymousUploadBeforeStorage() {
+		MockMultipartFile file = new MockMultipartFile(
+				"file", "photo.jpg", "image/jpeg", new byte[] {1, 2, 3, 4});
+
+		assertThatThrownBy(() -> service.upload(null, file, 7, null, List.of("Projet")))
+				.isInstanceOf(TagAuthenticationRequiredException.class);
+		verify(storageService, never()).save(any(), any(), anyLong(), any());
+	}
+
+	@Test
+	void rejectsDuplicateTagsIgnoringCase() {
+		MockMultipartFile file = new MockMultipartFile(
+				"file", "photo.jpg", "image/jpeg", new byte[] {1, 2, 3, 4});
+
+		assertThatThrownBy(() -> service.upload(
+				"user@example.com", file, 7, null, List.of("Projet", "projet")))
+				.isInstanceOf(InvalidFileException.class)
+				.hasMessageContaining("plusieurs fois");
+		verify(storageService, never()).save(any(), any(), anyLong(), any());
+	}
+
+	@Test
+	void rejectsATagLongerThanThirtyCharacters() {
+		MockMultipartFile file = new MockMultipartFile(
+				"file", "photo.jpg", "image/jpeg", new byte[] {1, 2, 3, 4});
+
+		assertThatThrownBy(() -> service.upload(
+				"user@example.com", file, 7, null, List.of("a".repeat(31))))
+				.isInstanceOf(InvalidFileException.class)
+				.hasMessageContaining("30 caractères");
+		verify(storageService, never()).save(any(), any(), anyLong(), any());
 	}
 
 	@Test
@@ -98,7 +138,7 @@ class FileUploadServiceTest {
 		MockMultipartFile file = new MockMultipartFile(
 				"file", "photo.jpg", "image/jpeg", new byte[] {1, 2, 3, 4});
 
-		assertThatThrownBy(() -> service.upload("user@example.com", file, 8, null))
+		assertThatThrownBy(() -> service.upload("user@example.com", file, 8, null, null))
 				.isInstanceOf(InvalidFileException.class);
 		verify(storageService, never()).save(any(), any(), anyLong(), any());
 	}
@@ -112,7 +152,7 @@ class FileUploadServiceTest {
 		when(fileMetadataRepository.saveAndFlush(any(FileMetadata.class)))
 				.thenThrow(new IllegalStateException("database unavailable"));
 
-		assertThatThrownBy(() -> service.upload("user@example.com", file, 7, null))
+		assertThatThrownBy(() -> service.upload("user@example.com", file, 7, null, null))
 				.isInstanceOf(IllegalStateException.class);
 		verify(storageService).delete(any());
 	}

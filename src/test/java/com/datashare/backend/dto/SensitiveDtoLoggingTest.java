@@ -3,6 +3,7 @@ package com.datashare.backend.dto;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +33,7 @@ class SensitiveDtoLoggingTest {
 		FileResponse file = new FileResponse(
 				UUID.randomUUID(), "private.pdf", "application/pdf", 100,
 				Instant.parse("2026-09-22T12:00:00Z"), Instant.parse("2026-09-29T12:00:00Z"),
-				false, "http://localhost:4200/share/secret-share-token", FileStatus.ACTIVE);
+				false, "http://localhost:4200/share/secret-share-token", FileStatus.ACTIVE, List.of("private"));
 		DownloadAccessResponse download = new DownloadAccessResponse(
 				"/api/shares/secret-share-token/content?ticket=secret-ticket",
 				Instant.parse("2026-09-22T12:01:00Z"));

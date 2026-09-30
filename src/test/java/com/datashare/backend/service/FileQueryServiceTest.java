@@ -52,6 +52,7 @@ class FileQueryServiceTest {
 				.containsExactly(FileStatus.ACTIVE, FileStatus.EXPIRED);
 		assertThat(response.getFirst().shareUrl())
 				.isEqualTo("http://localhost:4200/share/active-token");
+		assertThat(response.getFirst().tags()).isEmpty();
 	}
 
 	@Test
