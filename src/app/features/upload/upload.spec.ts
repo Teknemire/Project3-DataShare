@@ -59,6 +59,7 @@ describe('Upload', () => {
         passwordProtected: false,
         shareUrl: 'http://localhost:4200/share/token',
         status: 'ACTIVE',
+        tags: [],
       }),
     );
     selectFile(file);
@@ -70,9 +71,70 @@ describe('Upload', () => {
     expect(fileService.upload).toHaveBeenCalledOnceWith(file, {
       expirationDays: 7,
       password: undefined,
+      tags: undefined,
     });
     expect(fixture.nativeElement.querySelector('#share-link')?.value).toBe(
       'http://localhost:4200/share/token',
+    );
+  });
+
+  it('allows an authenticated user to add tags to the upload', () => {
+    fixture.destroy();
+    tokenStorage.set('test-jwt');
+    fixture = TestBed.createComponent(Upload);
+    fixture.detectChanges();
+
+    const file = new File(['content'], 'document.pdf', { type: 'application/pdf' });
+    fileService.upload.and.returnValue(
+      of({
+        id: 'file-id',
+        originalName: 'document.pdf',
+        mimeType: 'application/pdf',
+        size: file.size,
+        createdAt: '2026-09-22T12:00:00Z',
+        expiresAt: '2026-09-29T12:00:00Z',
+        passwordProtected: false,
+        shareUrl: 'http://localhost:4200/share/token',
+        status: 'ACTIVE',
+        tags: ['Projet', 'Urgent'],
+      }),
+    );
+    selectFile(file);
+    const tagsInput = fixture.nativeElement.querySelector('#tags') as HTMLInputElement;
+    tagsInput.value = ' Projet, Urgent ';
+    tagsInput.dispatchEvent(new Event('input'));
+
+    (fixture.nativeElement.querySelector('form') as HTMLFormElement).dispatchEvent(
+      new Event('submit'),
+    );
+    fixture.detectChanges();
+
+    expect(fileService.upload).toHaveBeenCalledOnceWith(file, {
+      expirationDays: 7,
+      password: undefined,
+      tags: ['Projet', 'Urgent'],
+    });
+  });
+
+  it('rejects duplicate tags before calling the API', () => {
+    fixture.destroy();
+    tokenStorage.set('test-jwt');
+    fixture = TestBed.createComponent(Upload);
+    fixture.detectChanges();
+
+    selectFile(new File(['content'], 'document.pdf', { type: 'application/pdf' }));
+    const tagsInput = fixture.nativeElement.querySelector('#tags') as HTMLInputElement;
+    tagsInput.value = 'Projet, projet';
+    tagsInput.dispatchEvent(new Event('input'));
+    tagsInput.dispatchEvent(new Event('blur'));
+    (fixture.nativeElement.querySelector('form') as HTMLFormElement).dispatchEvent(
+      new Event('submit'),
+    );
+    fixture.detectChanges();
+
+    expect(fileService.upload).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('#tags-error')?.textContent).toContain(
+      'plusieurs fois',
     );
   });
 

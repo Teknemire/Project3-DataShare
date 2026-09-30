@@ -20,7 +20,11 @@ describe('FileService', () => {
   it('sends the file and upload options as multipart data', () => {
     const file = new File(['content'], 'document.pdf', { type: 'application/pdf' });
 
-    service.upload(file, { expirationDays: 3, password: 'secret1' }).subscribe();
+    service.upload(file, {
+      expirationDays: 3,
+      password: 'secret1',
+      tags: ['Projet', 'Urgent'],
+    }).subscribe();
 
     const request = http.expectOne('/api/files');
     expect(request.request.method).toBe('POST');
@@ -31,6 +35,7 @@ describe('FileService', () => {
     expect(uploadedFile.size).toBe(file.size);
     expect(formData.get('expirationDays')).toBe('3');
     expect(formData.get('password')).toBe('secret1');
+    expect(formData.getAll('tags')).toEqual(['Projet', 'Urgent']);
     request.flush({});
   });
 
@@ -41,6 +46,7 @@ describe('FileService', () => {
 
     const request = http.expectOne('/api/files');
     expect((request.request.body as FormData).has('password')).toBeFalse();
+    expect((request.request.body as FormData).has('tags')).toBeFalse();
     request.flush({});
   });
 

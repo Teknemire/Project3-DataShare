@@ -30,6 +30,7 @@ describe('Account', () => {
     passwordProtected: true,
     shareUrl: 'http://localhost:4200/share/active-token',
     status: 'ACTIVE',
+    tags: ['Projet', 'Urgent'],
   };
 
   const expiredFile: FileResponse = {
@@ -40,6 +41,7 @@ describe('Account', () => {
     passwordProtected: false,
     shareUrl: 'http://localhost:4200/share/expired-token',
     status: 'EXPIRED',
+    tags: [],
   };
 
   beforeEach(async () => {
@@ -76,6 +78,7 @@ describe('Account', () => {
     expect(fixture.nativeElement.textContent).toContain('active.pdf');
     expect(fixture.nativeElement.textContent).toContain('expired.pdf');
     expect(fixture.nativeElement.querySelector('.lock-icon')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Tags : Projet, Urgent');
   });
 
   it('filters the history without another API request', () => {
