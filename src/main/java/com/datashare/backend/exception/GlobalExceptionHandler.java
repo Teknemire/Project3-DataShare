@@ -98,6 +98,12 @@ public class GlobalExceptionHandler {
 				.body(new ApiError("INVALID_TOKEN", "Authentification invalide."));
 	}
 
+	@ExceptionHandler(TagAuthenticationRequiredException.class)
+	public ResponseEntity<ApiError> handleTagAuthenticationRequired(TagAuthenticationRequiredException exception) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(new ApiError("TAG_AUTHENTICATION_REQUIRED", exception.getMessage()));
+	}
+
 	@ExceptionHandler(EmailAlreadyUsedException.class)
 	public ResponseEntity<ApiError> handleEmailAlreadyUsed(EmailAlreadyUsedException exception) {
 		return ResponseEntity.status(HttpStatus.CONFLICT)

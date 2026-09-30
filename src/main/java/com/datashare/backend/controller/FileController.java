@@ -76,7 +76,7 @@ public class FileController {
 	@ApiResponses({
 			@ApiResponse(responseCode = "201", description = "Fichier téléversé et lien créé"),
 			@ApiResponse(responseCode = "400", description = "Paramètres invalides"),
-			@ApiResponse(responseCode = "401", description = "JWT fourni invalide"),
+			@ApiResponse(responseCode = "401", description = "JWT invalide ou tags envoyés sans authentification"),
 			@ApiResponse(responseCode = "413", description = "Fichier supérieur à 1 Go"),
 			@ApiResponse(responseCode = "415", description = "Type de fichier interdit"),
 			@ApiResponse(responseCode = "503", description = "Stockage indisponible")
@@ -85,13 +85,15 @@ public class FileController {
 			@RequestPart("file") MultipartFile file,
 			@RequestParam(defaultValue = "7") Integer expirationDays,
 			@RequestParam(required = false) String password,
+			@RequestParam(required = false) List<String> tags,
 			Authentication authentication
 	) {
 		FileResponse response = fileUploadService.upload(
 				authentication == null ? null : authentication.getName(),
 				file,
 				expirationDays,
-				password
+				password,
+				tags
 		);
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}

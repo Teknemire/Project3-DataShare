@@ -2,6 +2,7 @@ package com.datashare.backend.dto;
 
 import com.datashare.backend.entity.FileMetadata;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public record FileResponse(
@@ -13,7 +14,8 @@ public record FileResponse(
 		Instant expiresAt,
 		boolean passwordProtected,
 		String shareUrl,
-		FileStatus status
+		FileStatus status,
+		List<String> tags
 ) {
 	public static FileResponse from(FileMetadata file, String publicUrl, Instant now) {
 		String normalizedPublicUrl = publicUrl.endsWith("/")
@@ -28,7 +30,8 @@ public record FileResponse(
 				file.getExpiresAt(),
 				file.getDownloadPasswordHash() != null,
 				normalizedPublicUrl + "/share/" + file.getDownloadToken(),
-				file.getExpiresAt().isAfter(now) ? FileStatus.ACTIVE : FileStatus.EXPIRED
+				file.getExpiresAt().isAfter(now) ? FileStatus.ACTIVE : FileStatus.EXPIRED,
+				List.copyOf(file.getTags())
 		);
 	}
 

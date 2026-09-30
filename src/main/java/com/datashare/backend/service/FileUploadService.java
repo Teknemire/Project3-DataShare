@@ -5,6 +5,7 @@ import com.datashare.backend.entity.FileMetadata;
 import com.datashare.backend.entity.User;
 import com.datashare.backend.exception.CurrentUserNotFoundException;
 import com.datashare.backend.exception.InvalidFileException;
+import com.datashare.backend.exception.TagAuthenticationRequiredException;
 import com.datashare.backend.repository.FileMetadataRepository;
 import com.datashare.backend.repository.UserRepository;
 import com.datashare.backend.storage.StorageService;
@@ -13,6 +14,10 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +37,7 @@ public class FileUploadService {
 	private static final int MAX_EXPIRATION_DAYS = 7;
 	private static final int MIN_DOWNLOAD_PASSWORD_LENGTH = 6;
 	private static final int MAX_DOWNLOAD_PASSWORD_LENGTH = 72;
+	private static final int MAX_TAG_LENGTH = 30;
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
 	private final UserRepository userRepository;
@@ -48,11 +54,13 @@ public class FileUploadService {
 			String authenticatedEmail,
 			MultipartFile multipartFile,
 			Integer expirationDays,
-			String downloadPassword
+			String downloadPassword,
+			List<String> tags
 	) {
 		FileValidationService.ValidatedFile validatedFile = fileValidationService.validate(multipartFile);
 		int validatedExpirationDays = validateExpiration(expirationDays);
 		String passwordHash = validateAndHashPassword(downloadPassword);
+		Set<String> validatedTags = validateTags(authenticatedEmail, tags);
 		User owner = authenticatedEmail == null
 				? null
 				: userRepository.findByEmail(authenticatedEmail)
@@ -79,7 +87,8 @@ public class FileUploadService {
 					passwordHash,
 					createdAt,
 					expiresAt,
-					owner
+					owner,
+					validatedTags
 			));
 			return FileResponse.from(savedFile, frontendPublicUrl, createdAt);
 		} catch (IOException exception) {
@@ -115,6 +124,32 @@ public class FileUploadService {
 		byte[] tokenBytes = new byte[32];
 		SECURE_RANDOM.nextBytes(tokenBytes);
 		return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
+	}
+
+	private Set<String> validateTags(String authenticatedEmail, List<String> tags) {
+		if (tags == null || tags.isEmpty()) {
+			return Set.of();
+		}
+		if (authenticatedEmail == null) {
+			throw new TagAuthenticationRequiredException();
+		}
+
+		Set<String> validatedTags = new LinkedHashSet<>();
+		Set<String> normalizedTags = new LinkedHashSet<>();
+		for (String tag : tags) {
+			String trimmedTag = tag == null ? "" : tag.trim();
+			if (trimmedTag.isEmpty()) {
+				throw new InvalidFileException("Un tag ne peut pas être vide.");
+			}
+			if (trimmedTag.length() > MAX_TAG_LENGTH) {
+				throw new InvalidFileException("Un tag ne peut pas dépasser 30 caractères.");
+			}
+			if (!normalizedTags.add(trimmedTag.toLowerCase(Locale.ROOT))) {
+				throw new InvalidFileException("Un même tag ne peut pas être ajouté plusieurs fois.");
+			}
+			validatedTags.add(trimmedTag);
+		}
+		return validatedTags;
 	}
 
 	private void tryCleanup(String storageKey) {

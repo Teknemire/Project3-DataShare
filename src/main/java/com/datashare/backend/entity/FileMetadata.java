@@ -1,6 +1,8 @@
 package com.datashare.backend.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -10,7 +12,10 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -60,6 +65,18 @@ public class FileMetadata {
 	@JoinColumn(name = "user_id")
 	private User user;
 
+	@ElementCollection
+	@CollectionTable(
+			name = "file_tag",
+			joinColumns = @JoinColumn(name = "file_id"),
+			uniqueConstraints = @UniqueConstraint(
+					name = "uk_file_tag_file_id_tag",
+					columnNames = {"file_id", "tag"}
+			)
+	)
+	@Column(name = "tag", nullable = false, length = 30)
+	private Set<String> tags = new LinkedHashSet<>();
+
 	public FileMetadata(
 			String originalName,
 			String storageKey,
@@ -71,6 +88,22 @@ public class FileMetadata {
 			Instant expiresAt,
 			User user
 	) {
+		this(originalName, storageKey, mimeType, size, downloadToken, downloadPasswordHash,
+				createdAt, expiresAt, user, Set.of());
+	}
+
+	public FileMetadata(
+			String originalName,
+			String storageKey,
+			String mimeType,
+			long size,
+			String downloadToken,
+			String downloadPasswordHash,
+			Instant createdAt,
+			Instant expiresAt,
+			User user,
+			Set<String> tags
+	) {
 		this.originalName = originalName;
 		this.storageKey = storageKey;
 		this.mimeType = mimeType;
@@ -80,5 +113,6 @@ public class FileMetadata {
 		this.createdAt = createdAt;
 		this.expiresAt = expiresAt;
 		this.user = user;
+		this.tags = new LinkedHashSet<>(tags);
 	}
 }
