@@ -6,7 +6,12 @@
     "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:unit": "ng test --watch=false",
+    "test:coverage": "ng test --watch=false --code-coverage",
+    "test:e2e": "playwright test",
+    "perf:browser": "node scripts/browser-metrics.mjs",
+    "evidence:coverage": "node scripts/capture-coverage.mjs"
   },
   "prettier": {
     "printWidth": 100,
@@ -36,6 +41,8 @@
     "@angular/build": "^20.3.37",
     "@angular/cli": "^20.3.37",
     "@angular/compiler-cli": "^20.3.0",
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.55.1",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.0",
