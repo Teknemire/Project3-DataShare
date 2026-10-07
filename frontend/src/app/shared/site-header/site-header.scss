@@ -1,0 +1,10 @@
+:host { display: block; }
+.site-header { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 6rem 0; }
+.brand { color: #0b0b0b; font-size: 1.65rem; font-weight: 750; line-height: 1; text-decoration: none; }
+.account-link { padding: .7rem 1rem; border-radius: .45rem; color: #fff; background: #292929; font-size: .75rem; line-height: 1; text-decoration: none; }
+.account-link:hover { background: #111; }
+@media (max-width: 600px) {
+  .site-header { padding: 1rem 1rem 0; }
+  .brand { font-size: 1.45rem; }
+  .account-link { padding: .65rem .8rem; font-size: .7rem; }
+}

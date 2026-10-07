@@ -12,8 +12,8 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'Microsoft Edge',
-      use: { ...devices['Desktop Edge'], channel: 'msedge' },
+      name: process.platform === 'win32' ? 'Microsoft Edge' : 'Chromium',
+      use: process.platform === 'win32' ? { ...devices['Desktop Edge'], channel: 'msedge' } : { ...devices['Desktop Chrome'] },
     },
   ],
 });

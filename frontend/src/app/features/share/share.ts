@@ -1,8 +1,9 @@
+import { SiteHeader } from '../../shared/site-header/site-header';
 import { DOCUMENT } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ApiError } from '../../core/models/auth.models';
 import { SharedFileResponse } from '../../core/models/file.models';
@@ -12,7 +13,7 @@ type ShareState = 'loading' | 'ready' | 'expired' | 'unavailable';
 
 @Component({
   selector: 'app-share',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [SiteHeader, ReactiveFormsModule],
   templateUrl: './share.html',
   styleUrl: './share.scss',
 })

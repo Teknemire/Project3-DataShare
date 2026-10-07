@@ -1,3 +1,4 @@
+import { SiteHeader } from '../../shared/site-header/site-header';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
 import {
@@ -8,7 +9,6 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ApiError } from '../../core/models/auth.models';
 import { FileResponse } from '../../core/models/file.models';
@@ -45,7 +45,7 @@ function validateTags(control: AbstractControl<string>): ValidationErrors | null
 
 @Component({
   selector: 'app-upload',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [SiteHeader, ReactiveFormsModule],
   templateUrl: './upload.html',
   styleUrl: './upload.scss',
 })
@@ -60,8 +60,7 @@ export class Upload {
   protected readonly feedback = signal('');
   protected readonly copyFeedback = signal('');
   protected readonly isSubmitting = signal(false);
-  protected readonly isAuthenticated = this.tokenStorage.get() !== null;
-  protected readonly accountDestination = this.isAuthenticated ? '/account' : '/login';
+  protected readonly isAuthenticated = this.tokenStorage.isAuthenticated;
   protected readonly uploadForm = new FormGroup({
     password: new FormControl('', {
       nonNullable: true,
@@ -129,7 +128,7 @@ export class Upload {
       .upload(file, {
         expirationDays: values.expirationDays,
         password: values.password || undefined,
-        tags: this.isAuthenticated ? parseTags(values.tags) : undefined,
+        tags: this.isAuthenticated() ? parseTags(values.tags) : undefined,
       })
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
@@ -181,6 +180,8 @@ export class Upload {
       this.feedback.set('Ce type de fichier n’est pas autorisé.');
     } else if (error.status === 503) {
       this.feedback.set('Le stockage est temporairement indisponible. Veuillez réessayer.');
+    } else if (error.status === 429) {
+      this.feedback.set('Trop d’envois. Veuillez patienter une minute avant de réessayer.');
     } else {
       this.feedback.set(apiError?.message || 'L’envoi a échoué. Veuillez réessayer.');
     }

@@ -1,3 +1,4 @@
+import { SiteHeader } from '../../../shared/site-header/site-header';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
@@ -22,7 +23,7 @@ function passwordsMatch(control: AbstractControl): ValidationErrors | null {
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [SiteHeader, ReactiveFormsModule, RouterLink],
   templateUrl: './register.html',
   styleUrl: '../auth-page.scss',
 })

@@ -3,6 +3,11 @@ import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
+    path: 'legal',
+    loadComponent: () => import('./features/legal/legal').then(component => component.Legal),
+    title: 'Mentions légales et confidentialité | DataShare',
+  },
+  {
     path: '',
     loadComponent: () => import('./features/home/home').then((component) => component.Home),
     title: 'DataShare | Partage de fichiers',

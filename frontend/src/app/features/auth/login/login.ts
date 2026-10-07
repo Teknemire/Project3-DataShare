@@ -1,3 +1,4 @@
+import { SiteHeader } from '../../../shared/site-header/site-header';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -7,7 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [SiteHeader, ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: '../auth-page.scss',
 })

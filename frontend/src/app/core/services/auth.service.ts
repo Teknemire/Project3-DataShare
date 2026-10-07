@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import {
   DeleteAccountRequest,
@@ -15,7 +15,8 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly tokenStorage = inject(TokenStorageService);
 
-  readonly currentUser = signal<UserResponse | null>(null);
+  readonly currentUser = this.tokenStorage.currentUser;
+  readonly isAuthenticated = this.tokenStorage.isAuthenticated;
 
   register(request: RegisterRequest): Observable<UserResponse> {
     return this.http.post<UserResponse>('/api/auth/register', request);

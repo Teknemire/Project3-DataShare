@@ -13,34 +13,9 @@
     linear-gradient(160deg, #ffbc90 0%, #f58b76 52%, #df6265 100%);
 }
 
-.site-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem 6rem 0;
-}
 
-.brand {
-  color: #0b0b0b;
-  font-size: 1.65rem;
-  font-weight: 750;
-  line-height: 1;
-  text-decoration: none;
-}
 
-.account-link {
-  padding: 0.7rem 1rem;
-  border-radius: 0.45rem;
-  color: #ffffff;
-  background: #292929;
-  font-size: 0.75rem;
-  line-height: 1;
-  text-decoration: none;
-}
 
-.account-link:hover {
-  background: #111111;
-}
 
 .home-content {
   align-self: center;
@@ -101,18 +76,8 @@ footer sup {
 }
 
 @media (max-width: 600px) {
-  .site-header {
-    padding: 1rem 1rem 0;
-  }
 
-  .brand {
-    font-size: 1.45rem;
-  }
 
-  .account-link {
-    padding: 0.65rem 0.8rem;
-    font-size: 0.7rem;
-  }
 
   .home-content {
     gap: 1.2rem;

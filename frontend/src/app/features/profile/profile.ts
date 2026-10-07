@@ -4,7 +4,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { ApiError, UserResponse } from '../../core/models/auth.models';
+import { ApiError } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -19,7 +19,7 @@ export class Profile implements OnInit {
   private readonly document = inject(DOCUMENT);
   private deletionTrigger: HTMLElement | null = null;
 
-  protected readonly user = signal<UserResponse | null>(this.authService.currentUser());
+  protected readonly user = this.authService.currentUser;
   protected readonly isLoading = signal(true);
   protected readonly loadError = signal('');
   protected readonly menuOpen = signal(false);
@@ -112,8 +112,6 @@ export class Profile implements OnInit {
 
   private handleLoadError(error: HttpErrorResponse): void {
     if (error.status === 401) {
-      this.authService.logout();
-      void this.router.navigate(['/login']);
       return;
     }
     this.loadError.set('Impossible de charger votre profil. Veuillez réessayer.');
@@ -126,8 +124,6 @@ export class Profile implements OnInit {
       return;
     }
     if (error.status === 401) {
-      this.authService.logout();
-      void this.router.navigate(['/login']);
       return;
     }
     if (error.status === 503) {

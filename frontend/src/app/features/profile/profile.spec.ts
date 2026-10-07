@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { UserResponse } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth.service';
@@ -120,19 +120,6 @@ describe('Profile', () => {
     expect(fixture.nativeElement.querySelector('.dialog-error')?.textContent).toContain(
       'compte et vos données n’ont pas été supprimés',
     );
-  });
-
-  it('logs out and redirects when the authenticated session is invalid', () => {
-    const router = TestBed.inject(Router);
-    const navigateSpy = spyOn(router, 'navigate').and.resolveTo(true);
-    authService.loadCurrentUser.and.returnValue(
-      throwError(() => new HttpErrorResponse({ status: 401 })),
-    );
-
-    createComponent();
-
-    expect(authService.logout).toHaveBeenCalled();
-    expect(navigateSpy).toHaveBeenCalledOnceWith(['/login']);
   });
 
   function createComponent(): void {

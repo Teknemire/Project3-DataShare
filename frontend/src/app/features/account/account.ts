@@ -3,7 +3,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
-import { UserResponse } from '../../core/models/auth.models';
 import { FileResponse, FileStatus } from '../../core/models/file.models';
 import { AuthService } from '../../core/services/auth.service';
 import { FileService } from '../../core/services/file.service';
@@ -23,8 +22,10 @@ export class Account implements OnInit {
   private readonly document = inject(DOCUMENT);
   private deletionTrigger: HTMLElement | null = null;
 
-  protected readonly user = signal<UserResponse | null>(this.authService.currentUser());
+  protected readonly user = this.authService.currentUser;
   protected readonly files = signal<FileResponse[]>([]);
+  protected readonly page = signal(0);
+  protected readonly hasNext = signal(false);
   protected readonly selectedFilter = signal<HistoryFilter>('ALL');
   protected readonly isLoading = signal(true);
   protected readonly errorMessage = signal('');
@@ -48,13 +49,14 @@ export class Account implements OnInit {
     this.errorMessage.set('');
     forkJoin({
       user: this.authService.loadCurrentUser(),
-      files: this.fileService.listOwnedFiles(),
+      files: this.fileService.listOwnedFiles(this.page(), this.selectedFilter()),
     })
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: ({ user, files }) => {
           this.user.set(user);
           this.files.set(files);
+          this.hasNext.set(files.length === 20);
         },
         error: (error: HttpErrorResponse) => this.handleError(error),
       });
@@ -62,6 +64,13 @@ export class Account implements OnInit {
 
   protected selectFilter(filter: HistoryFilter): void {
     this.selectedFilter.set(filter);
+    this.page.set(0);
+    this.loadAccount();
+  }
+
+  protected changePage(offset: number): void {
+    this.page.update(page => Math.max(0, page + offset));
+    this.loadAccount();
   }
 
   protected toggleMenu(): void {
@@ -155,8 +164,6 @@ export class Account implements OnInit {
 
   private handleError(error: HttpErrorResponse): void {
     if (error.status === 401) {
-      this.authService.logout();
-      void this.router.navigate(['/login']);
       return;
     }
 

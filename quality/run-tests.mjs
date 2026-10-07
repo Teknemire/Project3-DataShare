@@ -1,7 +1,7 @@
 /**
  * Validation quotidienne de DataShare.
  *
- * Sans option : tests backend, couverture frontend et build Angular.
+ * Sans option : analyses ESLint/PMD, tests backend, couverture frontend et build Angular.
  * Avec --all : ajoute Docker, les tests E2E et les captures de couverture.
  */
 import { existsSync } from 'node:fs';
@@ -14,7 +14,7 @@ if (process.argv.some((argument) => ['--help', '-h'].includes(argument))) {
   console.log(`
 Usage : node quality/run-tests.mjs [--all]
 
-Sans option : tests backend, couverture frontend et build Angular.
+Sans option : analyses ESLint/PMD, tests backend, couverture frontend et build Angular.
 Avec --all : ajoute Docker, les tests E2E et les captures de couverture.
 `);
   process.exit(0);
@@ -25,6 +25,9 @@ if (!testEnvironment.CHROME_BIN && process.platform === 'win32') {
   const edge = `${process.env['ProgramFiles(x86)']}\\Microsoft\\Edge\\Application\\msedge.exe`;
   if (existsSync(edge)) testEnvironment.CHROME_BIN = edge;
 }
+
+section(0, 'Frontend : analyse statique ESLint', 'Les règles TypeScript et Angular bloquent les erreurs avant les tests.');
+run(command('npm'), ['run', 'lint'], { cwd: paths.frontend });
 
 section(1, 'Backend : tests et couverture JaCoCo', 'Maven compile le backend et execute les tests JUnit/MockMvc.');
 run(command('mvn'), ['verify'], { cwd: paths.backend });

@@ -27,3 +27,7 @@ input {
   outline: 3px solid #1f6feb;
   outline-offset: 2px;
 }
+
+.pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; }
+.pagination button { padding: .5rem .75rem; border: 1px solid #999; border-radius: .4rem; background: white; cursor: pointer; }
+.pagination button:disabled { cursor: default; opacity: .5; }

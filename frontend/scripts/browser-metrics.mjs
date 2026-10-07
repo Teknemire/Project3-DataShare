@@ -7,7 +7,7 @@ const outputPath = resolve(
   process.env.PERF_OUTPUT ?? '../quality/browser-performance.json',
 );
 
-const browser = await chromium.launch({ channel: 'msedge', headless: true });
+const browser = await chromium.launch({ headless: true, ...(process.platform === 'win32' ? { channel: 'msedge' } : {}) });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 
 await page.goto(baseUrl, { waitUntil: 'networkidle' });

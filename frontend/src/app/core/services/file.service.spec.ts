@@ -78,7 +78,7 @@ describe('FileService', () => {
   it('loads the authenticated users file history', () => {
     service.listOwnedFiles().subscribe();
 
-    const request = http.expectOne('/api/files');
+    const request = http.expectOne('/api/files?page=0&size=20');
     expect(request.request.method).toBe('GET');
     request.flush([]);
   });

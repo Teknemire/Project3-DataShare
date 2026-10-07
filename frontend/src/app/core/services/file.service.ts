@@ -35,8 +35,8 @@ export class FileService {
     );
   }
 
-  listOwnedFiles(): Observable<FileResponse[]> {
-    return this.http.get<FileResponse[]>('/api/files');
+  listOwnedFiles(page = 0, status: 'ALL' | 'ACTIVE' | 'EXPIRED' = 'ALL'): Observable<FileResponse[]> {
+    return this.http.get<FileResponse[]>('/api/files', { params: { page, size: 20, ...(status === 'ALL' ? {} : { status }) } });
   }
 
   getOwnedFile(id: string): Observable<FileResponse> {

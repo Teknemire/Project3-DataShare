@@ -1,10 +1,5 @@
 <main class="upload-page">
-  <header class="site-header">
-    <a class="brand" routerLink="/" aria-label="Accueil DataShare">DataShare</a>
-    <a class="account-link" [routerLink]="accountDestination">
-      {{ isAuthenticated ? 'Mon espace' : 'Se connecter' }}
-    </a>
-  </header>
+  <app-site-header />
 
   <section
     class="upload-card"
@@ -127,7 +122,7 @@
           </select>
         </div>
 
-        @if (isAuthenticated) {
+        @if (isAuthenticated()) {
           <div class="field">
             <label for="tags">Tags <span>(optionnel)</span></label>
             <input

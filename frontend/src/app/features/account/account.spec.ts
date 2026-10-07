@@ -81,7 +81,7 @@ describe('Account', () => {
     expect(fixture.nativeElement.textContent).toContain('Tags : Projet, Urgent');
   });
 
-  it('filters the history without another API request', () => {
+  it('requests the selected filter from the paginated API', () => {
     createComponent();
     const expiredFilter = [...fixture.nativeElement.querySelectorAll('.filters button')].find(
       (button: Element) => button.textContent?.trim() === 'Expirés',
@@ -93,7 +93,7 @@ describe('Account', () => {
     expect(fixture.nativeElement.querySelectorAll('.file-row').length).toBe(1);
     expect(fixture.nativeElement.textContent).toContain('expired.pdf');
     expect(fixture.nativeElement.textContent).not.toContain('active.pdf');
-    expect(fileService.listOwnedFiles).toHaveBeenCalledTimes(1);
+    expect(fileService.listOwnedFiles).toHaveBeenCalledTimes(2);
   });
 
   it('only offers access for an active file', () => {
@@ -213,19 +213,6 @@ describe('Account', () => {
     expect(fixture.nativeElement.querySelector('.dialog-error')?.textContent).toContain(
       'n’a pas été supprimé',
     );
-  });
-
-  it('logs out and redirects when the API rejects the JWT', () => {
-    const router = TestBed.inject(Router);
-    const navigateSpy = spyOn(router, 'navigate').and.resolveTo(true);
-    fileService.listOwnedFiles.and.returnValue(
-      throwError(() => new HttpErrorResponse({ status: 401 })),
-    );
-
-    createComponent();
-
-    expect(authService.logout).toHaveBeenCalled();
-    expect(navigateSpy).toHaveBeenCalledOnceWith(['/login']);
   });
 
   function createComponent(): void {
