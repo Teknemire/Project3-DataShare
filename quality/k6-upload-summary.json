@@ -1,0 +1,196 @@
+{
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "groups": {},
+                "checks": {
+                        "performance account created": {
+                            "name": "performance account created",
+                            "path": "::setup::performance account created",
+                            "id": "51f7bbdb5e31f4cf0e89149c6a2f8d8c",
+                            "passes": 1,
+                            "fails": 0
+                        },
+                        "performance account authenticated": {
+                            "name": "performance account authenticated",
+                            "path": "::setup::performance account authenticated",
+                            "id": "5d0c85fcdb4d0a02bb470b3eea876e57",
+                            "passes": 1,
+                            "fails": 0
+                        }
+                    },
+                "name": "setup",
+                "path": "::setup",
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a"
+            },
+            "teardown": {
+                "checks": {
+                    "performance account cleaned": {
+                        "id": "95055200c6f94343fc2c57a17a667d28",
+                        "passes": 1,
+                        "fails": 0,
+                        "name": "performance account cleaned",
+                        "path": "::teardown::performance account cleaned"
+                    }
+                },
+                "name": "teardown",
+                "path": "::teardown",
+                "id": "a8a9942382e8ffe2e56ef29e664b8229",
+                "groups": {}
+            }
+        },
+        "checks": {
+            "upload returns 201": {
+                "name": "upload returns 201",
+                "path": "::upload returns 201",
+                "id": "3458fdaf07bf9c302d2efaa63a148394",
+                "passes": 375,
+                "fails": 0
+            },
+            "upload returns an id": {
+                "name": "upload returns an id",
+                "path": "::upload returns an id",
+                "id": "7d5f2ffeb97667ab35c9c8d3545a3ffd",
+                "passes": 375,
+                "fails": 0
+            },
+            "uploaded file cleaned": {
+                "name": "uploaded file cleaned",
+                "path": "::uploaded file cleaned",
+                "id": "7de3f013282317d79ec6eaa469354f40",
+                "passes": 375,
+                "fails": 0
+            }
+        }
+    },
+    "metrics": {
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 753,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "http_req_sending": {
+            "med": 0.11524,
+            "max": 1.391532,
+            "p(90)": 0.24425160000000007,
+            "p(95)": 0.3032333999999999,
+            "avg": 0.12004235989375853,
+            "min": 0.006062
+        },
+        "http_req_tls_handshaking": {
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0
+        },
+        "iteration_duration": {
+            "avg": 201.06502191733335,
+            "min": 175.97109,
+            "med": 192.573511,
+            "max": 567.165223,
+            "p(90)": 206.2151704,
+            "p(95)": 213.2803979
+        },
+        "iterations": {
+            "count": 375,
+            "rate": 24.456070992475894
+        },
+        "vus": {
+            "max": 5,
+            "value": 5,
+            "min": 5
+        },
+        "http_reqs": {
+            "count": 753,
+            "rate": 49.1077905528916
+        },
+        "http_req_blocked": {
+            "med": 0.003436,
+            "max": 2.60369,
+            "p(90)": 0.005116000000000002,
+            "p(95)": 0.006231999999999999,
+            "avg": 0.019871490039840647,
+            "min": 0.001823
+        },
+        "data_received": {
+            "count": 359701,
+            "rate": 23458.328512172193
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(95)": 133.2377448,
+            "avg": 100.13798848207172,
+            "min": 59.080822,
+            "med": 113.187542,
+            "max": 489.608751,
+            "p(90)": 128.8303018
+        },
+        "http_req_waiting": {
+            "med": 112.73292,
+            "max": 487.82319,
+            "p(90)": 128.1522372,
+            "p(95)": 132.4589398,
+            "avg": 99.77656026162008,
+            "min": 59.010578
+        },
+        "http_req_receiving": {
+            "avg": 0.24138586055776892,
+            "min": 0.018806,
+            "med": 0.109439,
+            "max": 9.501048,
+            "p(90)": 0.4817968000000001,
+            "p(95)": 0.6093803999999998
+        },
+        "data_sent": {
+            "count": 42588599,
+            "rate": 2777466.134970901
+        },
+        "vus_max": {
+            "value": 5,
+            "min": 5,
+            "max": 5
+        },
+        "checks": {
+            "passes": 1128,
+            "fails": 0,
+            "thresholds": {
+                "rate==1": false
+            },
+            "value": 1
+        },
+        "http_req_duration": {
+            "avg": 100.13798848207172,
+            "min": 59.080822,
+            "med": 113.187542,
+            "max": 489.608751,
+            "p(90)": 128.8303018,
+            "p(95)": 133.2377448
+        },
+        "upload_duration": {
+            "avg": 131.79518782933334,
+            "min": 113.187542,
+            "med": 123.739301,
+            "max": 489.608751,
+            "p(90)": 132.88129080000002,
+            "p(95)": 139.7471105,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "http_req_connecting": {
+            "avg": 0.013781629482071714,
+            "min": 0,
+            "med": 0,
+            "max": 1.811675,
+            "p(90)": 0,
+            "p(95)": 0
+        }
+    }
+}

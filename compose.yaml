@@ -1,19 +1,60 @@
+name: datashare
+
 services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: datashare
-      POSTGRES_USER: datashare
-      POSTGRES_PASSWORD: datashare
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - datashare-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U datashare -d datashare"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-http://localhost:4200}
+      STORAGE_TYPE: ${STORAGE_TYPE:-local}
+      LOCAL_STORAGE_PATH: /data/files
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_REGION: ${S3_REGION:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+      EXPIRATION_CLEANUP_DELAY_MS: ${EXPIRATION_CLEANUP_DELAY_MS:-900000}
+      DOWNLOAD_TICKET_EXPIRATION: ${DOWNLOAD_TICKET_EXPIRATION:-PT1M}
+      DOWNLOAD_STREAM_TIMEOUT: ${DOWNLOAD_STREAM_TIMEOUT:-3600s}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    volumes:
+      - ./backend/storage:/data/files
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
 
 volumes:
   datashare-postgres-data:
+    name: datashare-postgres-data

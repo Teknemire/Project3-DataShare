@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800" role="img" aria-labelledby="title desc">
+  <title id="title">Parcours technique d'un transfert DataShare</title>
+  <desc id="desc">Le fichier est sélectionné, envoyé, validé, stocké, puis partagé par un lien. Le destinataire obtient un ticket temporaire avant le téléchargement en flux.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4a5565"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#172033" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <rect width="1400" height="800" rx="24" fill="#f7f9fc"/>
+  <text x="70" y="66" fill="#172033" font-family="Arial, sans-serif" font-size="34" font-weight="700">Parcours technique d'un transfert</text>
+  <text x="70" y="104" fill="#5c6675" font-family="Arial, sans-serif" font-size="18">De la sélection du fichier au téléchargement par le destinataire.</text>
+
+  <rect x="55" y="140" width="1290" height="250" rx="16" fill="#fff7f3" stroke="#f0c6bc"/>
+  <text x="80" y="177" fill="#b34f43" font-family="Arial, sans-serif" font-size="18" font-weight="700">ENVOI ET CRÉATION DU LIEN</text>
+
+  <g filter="url(#shadow)" font-family="Arial, sans-serif">
+    <g transform="translate(80 215)">
+      <rect width="175" height="120" rx="10" fill="#ffffff" stroke="#e86f61" stroke-width="2"/>
+      <circle cx="25" cy="25" r="16" fill="#e86f61"/><text x="25" y="31" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">1</text>
+      <text x="87" y="63" text-anchor="middle" fill="#172033" font-size="18" font-weight="700">Sélection</text>
+      <text x="87" y="90" text-anchor="middle" fill="#5c6675" font-size="14">fichier et options</text>
+    </g>
+    <g transform="translate(290 215)">
+      <rect width="175" height="120" rx="10" fill="#ffffff" stroke="#e86f61" stroke-width="2"/>
+      <circle cx="25" cy="25" r="16" fill="#e86f61"/><text x="25" y="31" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">2</text>
+      <text x="87" y="63" text-anchor="middle" fill="#172033" font-size="18" font-weight="700">Upload</text>
+      <text x="87" y="90" text-anchor="middle" fill="#5c6675" font-size="14">multipart / HTTP</text>
+    </g>
+    <g transform="translate(500 215)">
+      <rect width="175" height="120" rx="10" fill="#ffffff" stroke="#4c7fc1" stroke-width="2"/>
+      <circle cx="25" cy="25" r="16" fill="#4c7fc1"/><text x="25" y="31" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">3</text>
+      <text x="87" y="63" text-anchor="middle" fill="#172033" font-size="18" font-weight="700">Validation</text>
+      <text x="87" y="90" text-anchor="middle" fill="#5c6675" font-size="14">taille, type, droits</text>
+    </g>
+    <g transform="translate(710 215)">
+      <rect width="175" height="120" rx="10" fill="#ffffff" stroke="#4c7fc1" stroke-width="2"/>
+      <circle cx="25" cy="25" r="16" fill="#4c7fc1"/><text x="25" y="31" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">4</text>
+      <text x="87" y="63" text-anchor="middle" fill="#172033" font-size="18" font-weight="700">Stockage</text>
+      <text x="87" y="90" text-anchor="middle" fill="#5c6675" font-size="14">local ou S3</text>
+    </g>
+    <g transform="translate(920 215)">
+      <rect width="175" height="120" rx="10" fill="#ffffff" stroke="#3f9067" stroke-width="2"/>
+      <circle cx="25" cy="25" r="16" fill="#3f9067"/><text x="25" y="31" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">5</text>
+      <text x="87" y="63" text-anchor="middle" fill="#172033" font-size="18" font-weight="700">Métadonnées</text>
+      <text x="87" y="90" text-anchor="middle" fill="#5c6675" font-size="14">PostgreSQL</text>
+    </g>
+    <g transform="translate(1130 215)">
+      <rect width="175" height="120" rx="10" fill="#ffffff" stroke="#3f9067" stroke-width="2"/>
+      <circle cx="25" cy="25" r="16" fill="#3f9067"/><text x="25" y="31" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">6</text>
+      <text x="87" y="63" text-anchor="middle" fill="#172033" font-size="18" font-weight="700">Lien public</text>
+      <text x="87" y="90" text-anchor="middle" fill="#5c6675" font-size="14">token aléatoire</text>
+    </g>
+  </g>
+
+  <g stroke="#4a5565" stroke-width="3" marker-end="url(#arrow)">
+    <line x1="255" y1="275" x2="280" y2="275"/>
+    <line x1="465" y1="275" x2="490" y2="275"/>
+    <line x1="675" y1="275" x2="700" y2="275"/>
+    <line x1="885" y1="275" x2="910" y2="275"/>
+    <line x1="1095" y1="275" x2="1120" y2="275"/>
+  </g>
+
+  <rect x="55" y="430" width="1290" height="280" rx="16" fill="#f1f6ff" stroke="#c9d9ef"/>
+  <text x="80" y="467" fill="#3c6ba8" font-family="Arial, sans-serif" font-size="18" font-weight="700">CONSULTATION ET TÉLÉCHARGEMENT</text>
+
+  <g filter="url(#shadow)" font-family="Arial, sans-serif">
+    <g transform="translate(1015 520)">
+      <rect width="230" height="125" rx="10" fill="#ffffff" stroke="#4c7fc1" stroke-width="2"/>
+      <circle cx="27" cy="27" r="17" fill="#4c7fc1"/><text x="27" y="33" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">7</text>
+      <text x="115" y="64" text-anchor="middle" fill="#172033" font-size="18" font-weight="700">Consultation</text>
+      <text x="115" y="92" text-anchor="middle" fill="#5c6675" font-size="14">nom, taille, expiration</text>
+    </g>
+    <g transform="translate(730 520)">
+      <rect width="230" height="125" rx="10" fill="#ffffff" stroke="#d49a3a" stroke-width="2"/>
+      <circle cx="27" cy="27" r="17" fill="#d49a3a"/><text x="27" y="33" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">8</text>
+      <text x="115" y="64" text-anchor="middle" fill="#172033" font-size="18" font-weight="700">Mot de passe</text>
+      <text x="115" y="92" text-anchor="middle" fill="#5c6675" font-size="14">si le partage est protégé</text>
+    </g>
+    <g transform="translate(445 520)">
+      <rect width="230" height="125" rx="10" fill="#ffffff" stroke="#3f9067" stroke-width="2"/>
+      <circle cx="27" cy="27" r="17" fill="#3f9067"/><text x="27" y="33" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">9</text>
+      <text x="115" y="64" text-anchor="middle" fill="#172033" font-size="18" font-weight="700">Ticket temporaire</text>
+      <text x="115" y="92" text-anchor="middle" fill="#5c6675" font-size="14">signé, valable 60 secondes</text>
+    </g>
+    <g transform="translate(160 520)">
+      <rect width="230" height="125" rx="10" fill="#ffffff" stroke="#3f9067" stroke-width="2"/>
+      <circle cx="27" cy="27" r="17" fill="#3f9067"/><text x="27" y="33" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">10</text>
+      <text x="115" y="64" text-anchor="middle" fill="#172033" font-size="18" font-weight="700">Téléchargement</text>
+      <text x="115" y="92" text-anchor="middle" fill="#5c6675" font-size="14">contenu transmis en flux</text>
+    </g>
+  </g>
+
+  <g stroke="#4a5565" stroke-width="3" marker-end="url(#arrow)">
+    <line x1="1015" y1="582" x2="970" y2="582"/>
+    <line x1="730" y1="582" x2="685" y2="582"/>
+    <line x1="445" y1="582" x2="400" y2="582"/>
+  </g>
+
+  <path d="M 1215 335 C 1325 370, 1325 470, 1130 510" fill="none" stroke="#4a5565" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="1275" y="420" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="15">le lien est transmis</text>
+  <text x="1275" y="442" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="15">au destinataire</text>
+
+  <text x="70" y="758" fill="#5c6675" font-family="Arial, sans-serif" font-size="15">Le mot de passe ne circule jamais dans l'URL. Le ticket autorise seulement l'ouverture du flux de téléchargement.</text>
+</svg>

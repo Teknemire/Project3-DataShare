@@ -1,0 +1,20 @@
+{
+  "measuredAt": "2026-09-24T10:39:11.514Z",
+  "url": "http://localhost:4200/",
+  "navigation": {
+    "timeToFirstByteMs": 3.0999999940395355,
+    "domContentLoadedMs": 55.900000005960464,
+    "loadEventMs": 56.5,
+    "documentTransferBytes": 1225
+  },
+  "paint": {
+    "firstPaintMs": 156,
+    "firstContentfulPaintMs": 156
+  },
+  "resources": {
+    "count": 7,
+    "transferBytes": 299365,
+    "javascriptTransferBytes": 283388,
+    "stylesheetTransferBytes": 591
+  }
+}

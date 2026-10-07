@@ -1,0 +1,195 @@
+﻿{
+    "measuredAt":  "2026-09-24T11:18:18.3421623+00:00",
+    "baseUrl":  "http://localhost:4200",
+    "storage":  "local",
+    "concurrentUsers":  5,
+    "runs":  [
+                 {
+                     "label":  "100 MB",
+                     "fileBytes":  100000000,
+                     "concurrentUsers":  5,
+                     "successCount":  5,
+                     "failureCount":  0,
+                     "wallTimeSeconds":  2.633958,
+                     "averageRequestSeconds":  1.855392,
+                     "p50RequestSeconds":  1.865095,
+                     "p95RequestSeconds":  1.90791,
+                     "minimumRequestSeconds":  1.783617,
+                     "maximumRequestSeconds":  1.90791,
+                     "aggregatePayloadBytesPerSecond":  189828409.17,
+                     "aggregatePayloadMegabytesPerSecond":  189.83,
+                     "requests":  [
+                                      {
+                                          "user":  1,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  1.90791,
+                                          "sizeUpload":  100000462,
+                                          "speedUpload":  52413808,
+                                          "fileId":  "c472108c-5e10-402e-bcc1-fe069a5bdae2",
+                                          "errorCode":  null
+                                      },
+                                      {
+                                          "user":  2,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  1.884203,
+                                          "sizeUpload":  100000462,
+                                          "speedUpload":  53073223,
+                                          "fileId":  "12846e0b-ea9b-464c-8da6-c1473a74e979",
+                                          "errorCode":  null
+                                      },
+                                      {
+                                          "user":  3,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  1.865095,
+                                          "sizeUpload":  100000462,
+                                          "speedUpload":  53616992,
+                                          "fileId":  "4afdfcf5-1030-4764-973e-acdce1f332a5",
+                                          "errorCode":  null
+                                      },
+                                      {
+                                          "user":  4,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  1.836137,
+                                          "sizeUpload":  100000462,
+                                          "speedUpload":  54462566,
+                                          "fileId":  "ced20fd8-7b2e-4f2a-9659-2de9fac3ede5",
+                                          "errorCode":  null
+                                      },
+                                      {
+                                          "user":  5,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  1.783617,
+                                          "sizeUpload":  100000462,
+                                          "speedUpload":  56066295,
+                                          "fileId":  "1b8458d2-223d-4cac-94e7-09a76e64bac3",
+                                          "errorCode":  null
+                                      }
+                                  ]
+                 },
+                 {
+                     "label":  "500 MB",
+                     "fileBytes":  500000000,
+                     "concurrentUsers":  5,
+                     "successCount":  5,
+                     "failureCount":  0,
+                     "wallTimeSeconds":  10.091443,
+                     "averageRequestSeconds":  9.501571,
+                     "p50RequestSeconds":  9.469443,
+                     "p95RequestSeconds":  9.709583,
+                     "minimumRequestSeconds":  9.406988,
+                     "maximumRequestSeconds":  9.709583,
+                     "aggregatePayloadBytesPerSecond":  247734630.31,
+                     "aggregatePayloadMegabytesPerSecond":  247.73,
+                     "requests":  [
+                                      {
+                                          "user":  1,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  9.406988,
+                                          "sizeUpload":  500000462,
+                                          "speedUpload":  53152058,
+                                          "fileId":  "a684d66f-de56-467b-9f25-b5f98a9409ca",
+                                          "errorCode":  null
+                                      },
+                                      {
+                                          "user":  2,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  9.500978,
+                                          "sizeUpload":  500000462,
+                                          "speedUpload":  52626243,
+                                          "fileId":  "414c2c37-7dda-452f-8a72-d7e0be8f5e2b",
+                                          "errorCode":  null
+                                      },
+                                      {
+                                          "user":  3,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  9.709583,
+                                          "sizeUpload":  500000462,
+                                          "speedUpload":  51495596,
+                                          "fileId":  "21cf7cb9-12a3-40b1-85f7-a6f24f08de7d",
+                                          "errorCode":  null
+                                      },
+                                      {
+                                          "user":  4,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  9.469443,
+                                          "sizeUpload":  500000462,
+                                          "speedUpload":  52801509,
+                                          "fileId":  "2780b967-107e-49ed-af62-1d61d4297456",
+                                          "errorCode":  null
+                                      },
+                                      {
+                                          "user":  5,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  9.420864,
+                                          "sizeUpload":  500000462,
+                                          "speedUpload":  53073771,
+                                          "fileId":  "0d26a268-d355-41b5-a688-292af8f51864",
+                                          "errorCode":  null
+                                      }
+                                  ]
+                 },
+                 {
+                     "label":  "1 GB",
+                     "fileBytes":  1000000000,
+                     "concurrentUsers":  5,
+                     "successCount":  5,
+                     "failureCount":  0,
+                     "wallTimeSeconds":  19.914549,
+                     "averageRequestSeconds":  19.31354,
+                     "p50RequestSeconds":  19.305228,
+                     "p95RequestSeconds":  19.429912,
+                     "minimumRequestSeconds":  19.146646,
+                     "maximumRequestSeconds":  19.429912,
+                     "aggregatePayloadBytesPerSecond":  251072720.75,
+                     "aggregatePayloadMegabytesPerSecond":  251.07,
+                     "requests":  [
+                                      {
+                                          "user":  1,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  19.146646,
+                                          "sizeUpload":  1000000462,
+                                          "speedUpload":  52228506,
+                                          "fileId":  "c93cd559-3217-4c57-bd45-312aeac53e94",
+                                          "errorCode":  null
+                                      },
+                                      {
+                                          "user":  2,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  19.429912,
+                                          "sizeUpload":  1000000462,
+                                          "speedUpload":  51467076,
+                                          "fileId":  "09f1998e-11aa-4c38-9d48-8027f9346964",
+                                          "errorCode":  null
+                                      },
+                                      {
+                                          "user":  3,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  19.393839,
+                                          "sizeUpload":  1000000462,
+                                          "speedUpload":  51562819,
+                                          "fileId":  "374f61fb-1bb4-4f33-84d0-91df00985861",
+                                          "errorCode":  null
+                                      },
+                                      {
+                                          "user":  4,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  19.292077,
+                                          "sizeUpload":  1000000462,
+                                          "speedUpload":  51834790,
+                                          "fileId":  "9af963ad-ef67-4ca6-8733-01707182d9e3",
+                                          "errorCode":  null
+                                      },
+                                      {
+                                          "user":  5,
+                                          "httpCode":  201,
+                                          "timeTotalSeconds":  19.305228,
+                                          "sizeUpload":  1000000462,
+                                          "speedUpload":  51799482,
+                                          "fileId":  "796c5fae-e504-4466-8724-1bb5a28387b1",
+                                          "errorCode":  null
+                                      }
+                                  ]
+                 }
+             ],
+    "cleanupCompleted":  true
+}

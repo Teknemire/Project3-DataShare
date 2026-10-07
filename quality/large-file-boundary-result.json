@@ -1,0 +1,28 @@
+﻿{
+    "measuredAt":  "2026-09-24T11:11:42.2695416+00:00",
+    "baseUrl":  "http://localhost:4200",
+    "storage":  "local",
+    "boundaryBytes":  1000000000,
+    "exactBoundary":  {
+                          "accepted":  true,
+                          "uploadHttpStatus":  201,
+                          "uploadSeconds":  12.441553,
+                          "multipartBytesSent":  1000000424,
+                          "uploadBytesPerSecond":  80375897,
+                          "downloadHttpStatus":  200,
+                          "downloadSeconds":  12.203421,
+                          "downloadedBytes":  1000000000,
+                          "downloadBytesPerSecond":  81944255,
+                          "sha256":  "BC17F06F9D9B5F6F79CA189A1772B1A3A38D6E40C45BEC50F9C4F28144EFDDCA",
+                          "hashesMatch":  true
+                      },
+    "overBoundary":  {
+                         "rejected":  true,
+                         "fileBytes":  1000000001,
+                         "httpStatus":  413,
+                         "errorCode":  "FILE_TOO_LARGE",
+                         "uploadSeconds":  6.179774,
+                         "multipartBytesSent":  1000000425
+                     },
+    "cleanupCompleted":  true
+}

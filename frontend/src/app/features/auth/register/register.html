@@ -1,0 +1,106 @@
+<main class="auth-page">
+  <header class="site-header">
+    <a class="brand" routerLink="/" aria-label="Accueil DataShare">DataShare</a>
+    <a class="login-button" routerLink="/login">Se connecter</a>
+  </header>
+
+  <section class="auth-card" aria-labelledby="register-title">
+    <h1 id="register-title">Créer un compte</h1>
+
+    <form [formGroup]="registrationForm" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          inputmode="email"
+          autocomplete="email"
+          placeholder="Saisissez votre email..."
+          formControlName="email"
+          [attr.aria-invalid]="registrationForm.controls.email.invalid && registrationForm.controls.email.touched"
+          [attr.aria-describedby]="registrationForm.controls.email.invalid && registrationForm.controls.email.touched ? 'email-error' : null"
+        />
+        @if (registrationForm.controls.email.invalid && registrationForm.controls.email.touched) {
+          <p class="field-error" id="email-error">
+            @if (registrationForm.controls.email.hasError('emailAlreadyUsed')) {
+              Cette adresse email est déjà utilisée.
+            } @else if (registrationForm.controls.email.hasError('required')) {
+              L’adresse email est obligatoire.
+            } @else {
+              Saisissez une adresse email valide.
+            }
+          </p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="password">Mot de passe</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="new-password"
+          placeholder="Saisissez votre mot de passe..."
+          formControlName="password"
+          [attr.aria-invalid]="registrationForm.controls.password.invalid && registrationForm.controls.password.touched"
+          [attr.aria-describedby]="registrationForm.controls.password.invalid && registrationForm.controls.password.touched ? 'password-help password-error' : 'password-help'"
+        />
+        <p class="visually-hidden" id="password-help">Le mot de passe doit contenir au moins 8 caractères.</p>
+        @if (registrationForm.controls.password.invalid && registrationForm.controls.password.touched) {
+          <p class="field-error" id="password-error">
+            @if (registrationForm.controls.password.hasError('required')) {
+              Le mot de passe est obligatoire.
+            } @else if (registrationForm.controls.password.hasError('passwordTooLong')) {
+              Le mot de passe est trop long. Les caractères accentués et les emojis comptent davantage.
+            } @else {
+              Le mot de passe doit contenir au moins 8 caractères.
+            }
+          </p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="password-confirmation">Vérification du mot de passe</label>
+        <input
+          id="password-confirmation"
+          type="password"
+          autocomplete="new-password"
+          placeholder="Saisissez le à nouveau"
+          formControlName="passwordConfirmation"
+          [attr.aria-invalid]="(registrationForm.controls.passwordConfirmation.invalid || registrationForm.hasError('passwordsMismatch')) && registrationForm.controls.passwordConfirmation.touched"
+          [attr.aria-describedby]="(registrationForm.controls.passwordConfirmation.invalid || registrationForm.hasError('passwordsMismatch')) && registrationForm.controls.passwordConfirmation.touched ? 'confirmation-error' : null"
+        />
+        @if (
+          (registrationForm.controls.passwordConfirmation.invalid ||
+            registrationForm.hasError('passwordsMismatch')) &&
+          registrationForm.controls.passwordConfirmation.touched
+        ) {
+          <p class="field-error" id="confirmation-error">
+            @if (registrationForm.controls.passwordConfirmation.hasError('required')) {
+              La confirmation du mot de passe est obligatoire.
+            } @else {
+              Les mots de passe ne correspondent pas.
+            }
+          </p>
+        }
+      </div>
+
+      <a class="existing-account" routerLink="/login">J’ai déjà un compte</a>
+
+      <button type="submit" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'Création en cours…' : 'Créer mon compte' }}
+      </button>
+
+      @if (feedback()) {
+        <p
+          class="feedback"
+          [class.success]="registrationSucceeded()"
+          [attr.role]="registrationSucceeded() ? 'status' : 'alert'"
+        >
+          {{ feedback() }}
+        </p>
+      }
+    </form>
+  </section>
+
+  <footer>Copyright DataShare<sup>®</sup> 2025</footer>
+</main>

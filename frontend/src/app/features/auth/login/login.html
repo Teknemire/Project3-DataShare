@@ -1,0 +1,67 @@
+<main class="auth-page">
+  <header class="site-header">
+    <a class="brand" routerLink="/" aria-label="Accueil DataShare">DataShare</a>
+    <a class="login-button" routerLink="/login" aria-current="page">Se connecter</a>
+  </header>
+
+  <section class="auth-card" aria-labelledby="login-title">
+    <h1 id="login-title">Connexion</h1>
+
+    @if (registrationMessage()) {
+      <p class="feedback success" role="status">{{ registrationMessage() }}</p>
+    }
+
+    <form [formGroup]="loginForm" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          inputmode="email"
+          autocomplete="email"
+          placeholder="Saisissez votre email..."
+          formControlName="email"
+          [attr.aria-invalid]="loginForm.controls.email.invalid && loginForm.controls.email.touched"
+          [attr.aria-describedby]="loginForm.controls.email.invalid && loginForm.controls.email.touched ? 'email-error' : null"
+        />
+        @if (loginForm.controls.email.invalid && loginForm.controls.email.touched) {
+          <p class="field-error" id="email-error">
+            @if (loginForm.controls.email.hasError('required')) {
+              L’adresse email est obligatoire.
+            } @else {
+              Saisissez une adresse email valide.
+            }
+          </p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="password">Mot de passe</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Saisissez votre mot de passe..."
+          formControlName="password"
+          [attr.aria-invalid]="loginForm.controls.password.invalid && loginForm.controls.password.touched"
+          [attr.aria-describedby]="loginForm.controls.password.invalid && loginForm.controls.password.touched ? 'password-error' : null"
+        />
+        @if (loginForm.controls.password.invalid && loginForm.controls.password.touched) {
+          <p class="field-error" id="password-error">Le mot de passe est obligatoire.</p>
+        }
+      </div>
+
+      <a class="existing-account" routerLink="/register">Créer un compte</a>
+
+      <button type="submit" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'Connexion en cours…' : 'Connexion' }}
+      </button>
+
+      @if (errorMessage()) {
+        <p class="feedback" role="alert">{{ errorMessage() }}</p>
+      }
+    </form>
+  </section>
+
+  <footer>Copyright DataShare<sup>®</sup> 2025</footer>
+</main>

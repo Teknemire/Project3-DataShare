@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title desc">
+  <title id="title">Modèle de données DataShare</title>
+  <desc id="desc">Un utilisateur peut posséder plusieurs fichiers. Un fichier peut être anonyme et peut avoir plusieurs tags. Le contenu est conservé hors de la base.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#566174"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#172033" flood-opacity="0.11"/>
+    </filter>
+  </defs>
+
+  <rect width="1400" height="760" rx="24" fill="#f7f9fc"/>
+  <text x="70" y="68" fill="#172033" font-family="Arial, sans-serif" font-size="34" font-weight="700">Modèle de données</text>
+  <text x="70" y="106" fill="#5c6675" font-family="Arial, sans-serif" font-size="18">PostgreSQL conserve les comptes et les métadonnées, pas le contenu des fichiers.</text>
+
+  <g filter="url(#shadow)" font-family="Arial, sans-serif">
+    <g transform="translate(75 190)">
+      <rect width="330" height="285" rx="12" fill="#ffffff" stroke="#e86f61" stroke-width="3"/>
+      <path d="M 0 58 H 330" stroke="#e86f61" stroke-width="2"/>
+      <rect width="330" height="58" rx="10" fill="#fff0eb"/>
+      <text x="24" y="38" fill="#172033" font-size="22" font-weight="700">USER</text>
+      <text x="24" y="92" fill="#172033" font-size="16" font-weight="700">id</text><text x="205" y="92" fill="#5c6675" font-size="15">UUID, clé primaire</text>
+      <text x="24" y="132" fill="#172033" font-size="16" font-weight="700">email</text><text x="205" y="132" fill="#5c6675" font-size="15">unique</text>
+      <text x="24" y="172" fill="#172033" font-size="16" font-weight="700">passwordHash</text><text x="205" y="172" fill="#5c6675" font-size="15">BCrypt</text>
+      <text x="24" y="212" fill="#172033" font-size="16" font-weight="700">createdAt</text><text x="205" y="212" fill="#5c6675" font-size="15">date UTC</text>
+      <text x="24" y="258" fill="#8b4950" font-size="14">Aucune autre donnée de profil</text>
+    </g>
+
+    <g transform="translate(525 145)">
+      <rect width="420" height="420" rx="12" fill="#ffffff" stroke="#4c7fc1" stroke-width="3"/>
+      <path d="M 0 58 H 420" stroke="#4c7fc1" stroke-width="2"/>
+      <rect width="420" height="58" rx="10" fill="#edf4ff"/>
+      <text x="24" y="38" fill="#172033" font-size="22" font-weight="700">FILE_METADATA</text>
+      <text x="24" y="92" fill="#172033" font-size="16" font-weight="700">id</text><text x="250" y="92" fill="#5c6675" font-size="15">UUID, clé primaire</text>
+      <text x="24" y="126" fill="#172033" font-size="16" font-weight="700">originalName</text><text x="250" y="126" fill="#5c6675" font-size="15">nom affiché</text>
+      <text x="24" y="160" fill="#172033" font-size="16" font-weight="700">storageKey</text><text x="250" y="160" fill="#5c6675" font-size="15">unique</text>
+      <text x="24" y="194" fill="#172033" font-size="16" font-weight="700">mimeType / size</text><text x="250" y="194" fill="#5c6675" font-size="15">type et taille</text>
+      <text x="24" y="228" fill="#172033" font-size="16" font-weight="700">downloadToken</text><text x="250" y="228" fill="#5c6675" font-size="15">unique</text>
+      <text x="24" y="262" fill="#172033" font-size="16" font-weight="700">downloadPasswordHash</text><text x="250" y="262" fill="#5c6675" font-size="15">facultatif</text>
+      <text x="24" y="296" fill="#172033" font-size="16" font-weight="700">createdAt / expiresAt</text><text x="250" y="296" fill="#5c6675" font-size="15">dates UTC</text>
+      <text x="24" y="330" fill="#172033" font-size="16" font-weight="700">userId</text><text x="250" y="330" fill="#5c6675" font-size="15">facultatif, clé étrangère</text>
+      <rect x="22" y="360" width="376" height="40" rx="8" fill="#f3f6fa"/>
+      <text x="210" y="386" text-anchor="middle" fill="#5c6675" font-size="14">Statut ACTIF / EXPIRÉ calculé depuis expiresAt</text>
+    </g>
+
+    <g transform="translate(1065 230)">
+      <rect width="270" height="195" rx="12" fill="#ffffff" stroke="#3f9067" stroke-width="3"/>
+      <path d="M 0 58 H 270" stroke="#3f9067" stroke-width="2"/>
+      <rect width="270" height="58" rx="10" fill="#eaf7f0"/>
+      <text x="24" y="38" fill="#172033" font-size="22" font-weight="700">FILE_TAG</text>
+      <text x="24" y="102" fill="#172033" font-size="16" font-weight="700">fileId</text><text x="155" y="102" fill="#5c6675" font-size="15">clé étrangère</text>
+      <text x="24" y="144" fill="#172033" font-size="16" font-weight="700">tag</text><text x="155" y="144" fill="#5c6675" font-size="15">30 caractères max.</text>
+      <text x="24" y="176" fill="#5c6675" font-size="14">Collection technique JPA</text>
+    </g>
+  </g>
+
+  <line x1="405" y1="330" x2="515" y2="330" stroke="#566174" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="465" y="283" text-anchor="middle" fill="#172033" font-family="Arial, sans-serif" font-size="12" font-weight="700">
+    <tspan x="465">fichier</tspan><tspan x="465" dy="16">0..1 utilisateur</tspan>
+  </text>
+  <text x="465" y="357" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="12">
+    <tspan x="465">utilisateur</tspan><tspan x="465" dy="16">0..* fichiers</tspan>
+  </text>
+
+  <line x1="945" y1="330" x2="1055" y2="330" stroke="#566174" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="1000" y="283" text-anchor="middle" fill="#172033" font-family="Arial, sans-serif" font-size="12" font-weight="700">
+    <tspan x="1000">fichier</tspan><tspan x="1000" dy="16">0..* tags</tspan>
+  </text>
+  <text x="1000" y="357" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="12">
+    <tspan x="1000">tag</tspan><tspan x="1000" dy="16">1 fichier</tspan>
+  </text>
+
+  <g transform="translate(490 630)" font-family="Arial, sans-serif">
+    <rect width="490" height="78" rx="12" fill="#fff8ed" stroke="#d49a3a" stroke-width="2" stroke-dasharray="8 6"/>
+    <text x="245" y="31" text-anchor="middle" fill="#172033" font-size="18" font-weight="700">Contenu du fichier hors PostgreSQL</text>
+    <text x="245" y="57" text-anchor="middle" fill="#5c6675" font-size="15">storageKey pointe vers le stockage local ou S3</text>
+  </g>
+  <line x1="735" y1="565" x2="735" y2="620" stroke="#d49a3a" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+</svg>

@@ -1,0 +1,248 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.share-page {
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto 1fr auto;
+  color: #111111;
+  background:
+    radial-gradient(circle at 88% 8%, rgb(255 196 150 / 45%), transparent 38%),
+    linear-gradient(160deg, #ffbc90 0%, #f58b76 52%, #df6265 100%);
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 6rem 0;
+}
+
+.brand {
+  color: #0b0b0b;
+  font-size: 1.65rem;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.login-link {
+  padding: 0.7rem 1rem;
+  border-radius: 0.45rem;
+  color: #ffffff;
+  background: #292929;
+  font-size: 0.75rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.download-card {
+  align-self: center;
+  justify-self: center;
+  width: min(25rem, calc(100% - 2rem));
+  margin-block: 2rem;
+  padding: 2rem;
+  border-radius: 0.8rem;
+  background: #ffffff;
+  box-shadow: 0 0.2rem 0.65rem rgb(77 36 34 / 24%);
+}
+
+h1 {
+  margin: 0 0 1.5rem;
+  font-size: 1.45rem;
+  text-align: center;
+}
+
+.file-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 1.2rem;
+}
+
+.file-summary > svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: #111111;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.file-details {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.file-details strong {
+  overflow: hidden;
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-details small {
+  color: #686868;
+  font-size: 0.7rem;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  padding: 0.48rem 0.55rem;
+  border: 1px solid #b9cff8;
+  border-radius: 0.35rem;
+  color: #315aa3;
+  background: #eaf1ff;
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+.notice > span,
+.download-feedback > span {
+  display: inline-grid;
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.notice-warning {
+  border-color: #f1c8ad;
+  color: #a04a24;
+  background: #fff2e9;
+}
+
+.notice-error {
+  margin: 0;
+  border-color: #efb2ba;
+  color: #a52a38;
+  background: #ffecef;
+}
+
+.field {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.42rem;
+  font-size: 0.8rem;
+}
+
+input {
+  width: 100%;
+  min-height: 2.65rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #d6d6d6;
+  border-radius: 0.4rem;
+  color: #171717;
+  background: #ffffff;
+  font-size: 0.8rem;
+}
+
+input[aria-invalid='true'] {
+  border-color: #b42318;
+}
+
+.download-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: -0.25rem 0 0.8rem;
+  color: #9f1c13;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.download-button {
+  display: flex;
+  width: 100%;
+  min-height: 2.65rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid #ef9870;
+  border-radius: 0.4rem;
+  color: #9f3e1c;
+  background: #fff1e8;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.download-button:hover:not(:disabled) {
+  background: #ffe2d1;
+}
+
+.download-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.download-button svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.loading-message {
+  margin: 0;
+  color: #565656;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+footer {
+  padding: 0 6rem 1.5rem;
+  color: #3b1d1b;
+  font-size: 0.7rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 600px) {
+  .site-header {
+    padding: 1rem 1rem 0;
+  }
+
+  .brand {
+    font-size: 1.45rem;
+  }
+
+  .download-card {
+    width: calc(100% - 2rem);
+    margin: 1.5rem auto;
+    padding: 1.5rem 1.25rem;
+    border-radius: 0.8rem;
+  }
+
+  footer {
+    display: none;
+  }
+}

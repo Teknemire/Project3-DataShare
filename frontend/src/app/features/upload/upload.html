@@ -1,0 +1,161 @@
+<main class="upload-page">
+  <header class="site-header">
+    <a class="brand" routerLink="/" aria-label="Accueil DataShare">DataShare</a>
+    <a class="account-link" [routerLink]="accountDestination">
+      {{ isAuthenticated ? 'Mon espace' : 'Se connecter' }}
+    </a>
+  </header>
+
+  <section
+    class="upload-card"
+    aria-labelledby="upload-title"
+    aria-live="polite"
+    [attr.aria-busy]="isSubmitting()"
+  >
+    @if (uploadResult(); as result) {
+      <h1 id="upload-title">Ajouter un fichier</h1>
+
+      <div class="success-file">
+        <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+          <path d="M6.5 3.5h7l4 4v13h-11z" />
+          <path d="M13.5 3.5v4h4M9.5 12h5M9.5 15h5" />
+        </svg>
+        <span class="file-details">
+          <strong>{{ result.originalName }}</strong>
+          <small>{{ formatSize(result.size) }}</small>
+        </span>
+      </div>
+
+      <p class="success-text">
+        Félicitations, ton fichier sera conservé chez nous pendant {{ retentionLabel() }}&nbsp;!
+      </p>
+
+      <input
+        id="share-link"
+        class="share-link-input"
+        type="text"
+        readonly
+        aria-label="Lien de partage"
+        [value]="result.shareUrl"
+      />
+
+      <button class="copy-button" type="button" (click)="copyShareLink()">
+        <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+          <rect x="8" y="8" width="10" height="10" rx="1" />
+          <path d="M15 8V5.5H5.5V15H8" />
+        </svg>
+        Copier le lien
+      </button>
+      <p class="copy-feedback" aria-live="polite">{{ copyFeedback() }}</p>
+    } @else {
+      <h1 id="upload-title">Ajouter un fichier</h1>
+
+      <label class="visually-hidden" for="file">Fichier à partager</label>
+      <input
+        #fileInput
+        class="visually-hidden"
+        id="file"
+        type="file"
+        (change)="onFileSelected($event)"
+        aria-describedby="file-help upload-feedback"
+      />
+      <span id="file-help" class="visually-hidden">
+        Un fichier de 1 Go maximum. Les exécutables, installateurs et scripts sont refusés.
+      </span>
+
+      <div class="file-selection">
+        <span class="file-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M12 16V8m0 0-3 3m3-3 3 3" />
+            <path d="M7.5 18.5H6a4 4 0 0 1-.45-7.98A6.5 6.5 0 0 1 18 9.5h.5a3.5 3.5 0 0 1 0 7H17" />
+          </svg>
+        </span>
+        @if (selectedFile(); as file) {
+          <span class="file-details">
+            <strong>{{ file.name }}</strong>
+            <small>{{ formatSize(file.size) }}</small>
+          </span>
+          <button class="change-button" type="button" (click)="chooseFile()">Changer</button>
+        } @else {
+          <span class="file-details">
+            <button class="choose-button" type="button" (click)="chooseFile()">
+              Choisir un fichier
+            </button>
+            <small>1 Go maximum</small>
+          </span>
+        }
+      </div>
+
+      @if (feedback()) {
+        <p id="upload-feedback" class="feedback" role="alert">
+          <span aria-hidden="true">!</span>
+          {{ feedback() }}
+        </p>
+      } @else {
+        <span id="upload-feedback" class="visually-hidden" aria-live="assertive"></span>
+      }
+
+      <form [formGroup]="uploadForm" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label for="password">Mot de passe <span>(optionnel)</span></label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            autocomplete="new-password"
+            placeholder="6 caractères minimum"
+            [attr.aria-invalid]="uploadForm.controls.password.invalid && uploadForm.controls.password.touched"
+            [attr.aria-describedby]="uploadForm.controls.password.invalid && uploadForm.controls.password.touched ? 'password-error' : null"
+          />
+          @if (uploadForm.controls.password.invalid && uploadForm.controls.password.touched) {
+            <p id="password-error" class="field-error">
+              @if (uploadForm.controls.password.hasError('passwordTooLong')) {
+                Le mot de passe est trop long. Les caractères accentués et les emojis comptent davantage.
+              } @else {
+                Le mot de passe doit contenir au moins 6 caractères.
+              }
+            </p>
+          }
+        </div>
+
+        <div class="field">
+          <label for="expiration">Expiration</label>
+          <select id="expiration" formControlName="expirationDays">
+            @for (day of [1, 2, 3, 4, 5, 6, 7]; track day) {
+              <option [value]="day">{{ day }} {{ day === 1 ? 'jour' : 'jours' }}</option>
+            }
+          </select>
+        </div>
+
+        @if (isAuthenticated) {
+          <div class="field">
+            <label for="tags">Tags <span>(optionnel)</span></label>
+            <input
+              id="tags"
+              type="text"
+              formControlName="tags"
+              placeholder="projet, client, urgent"
+              [attr.aria-describedby]="uploadForm.controls.tags.invalid && uploadForm.controls.tags.touched ? 'tags-help tags-error' : 'tags-help'"
+              [attr.aria-invalid]="uploadForm.controls.tags.invalid && uploadForm.controls.tags.touched"
+            />
+            <small id="tags-help" class="field-help">
+              Séparez les tags par des virgules. 30 caractères maximum par tag.
+            </small>
+            @if (uploadForm.controls.tags.touched && uploadForm.controls.tags.hasError('tagTooLong')) {
+              <p id="tags-error" class="field-error">Chaque tag doit contenir 30 caractères maximum.</p>
+            } @else if (uploadForm.controls.tags.touched && uploadForm.controls.tags.hasError('duplicateTags')) {
+              <p id="tags-error" class="field-error">Un même tag ne peut pas être ajouté plusieurs fois.</p>
+            }
+          </div>
+        }
+
+        <button class="submit-button" type="submit" [disabled]="isSubmitting() || !selectedFile()">
+          {{ isSubmitting() ? 'Téléversement…' : 'Téléverser' }}
+        </button>
+      </form>
+
+    }
+  </section>
+
+  <footer>Copyright DataShare<sup>®</sup> 2025</footer>
+</main>

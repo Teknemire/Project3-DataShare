@@ -1,36 +1,28 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# Configuration locale et secrets
+.env
+.env.*
+!.env.example
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
+# Outils et système
+.idea/
 .vscode/
+.DS_Store
+Thumbs.db
 
-### DataShare local file storage ###
-/storage/
+# Backend généré
+backend/target/
+backend/storage/
+
+# Frontend généré
+frontend/.angular/
+frontend/coverage/
+frontend/dist/
+frontend/node_modules/
+frontend/playwright-report/
+frontend/test-results/
+
+# Journaux et fichiers temporaires
+*.log
+!quality/backend-metrics-sample.log
+*.tmp
+tmp/

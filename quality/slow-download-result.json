@@ -1,0 +1,11 @@
+{
+  "testedAt": "2026-09-27T15:28:33.310Z",
+  "storage": "local",
+  "expectedBytes": 67108864,
+  "pauseMs": 40000,
+  "expectedSha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98",
+  "status": "complete",
+  "receivedBytes": 67108864,
+  "receivedSha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98",
+  "elapsedMs": 40338
+}

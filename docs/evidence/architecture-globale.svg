@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title desc">
+  <title id="title">Architecture globale de DataShare</title>
+  <desc id="desc">Le navigateur utilise Angular, qui appelle une API Spring Boot. Le backend enregistre les métadonnées dans PostgreSQL et les fichiers dans un stockage local ou S3.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3f4a5a"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#172033" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="1400" height="760" rx="24" fill="#f7f9fc"/>
+  <text x="70" y="70" fill="#172033" font-family="Arial, sans-serif" font-size="34" font-weight="700">Architecture globale de DataShare</text>
+  <text x="70" y="108" fill="#5c6675" font-family="Arial, sans-serif" font-size="18">Une interface web, une API centrale, une base de métadonnées et un stockage de fichiers interchangeable.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="65" y="190" width="245" height="140" rx="12" fill="#ffffff" stroke="#cbd3df" stroke-width="2"/>
+    <rect x="370" y="190" width="245" height="140" rx="12" fill="#fff4ef" stroke="#e86f61" stroke-width="3"/>
+    <rect x="675" y="190" width="270" height="140" rx="12" fill="#eef5ff" stroke="#4c7fc1" stroke-width="3"/>
+    <rect x="1010" y="190" width="300" height="140" rx="12" fill="#eef9f3" stroke="#3f9067" stroke-width="3"/>
+  </g>
+
+  <text x="187" y="236" text-anchor="middle" fill="#172033" font-family="Arial, sans-serif" font-size="22" font-weight="700">Utilisateur</text>
+  <text x="187" y="270" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="17">Navigateur web</text>
+  <text x="187" y="298" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="17">ordinateur ou mobile</text>
+
+  <text x="492" y="236" text-anchor="middle" fill="#172033" font-family="Arial, sans-serif" font-size="22" font-weight="700">Angular</text>
+  <text x="492" y="270" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="17">Ecrans et formulaires</text>
+  <text x="492" y="298" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="17">TypeScript</text>
+
+  <text x="810" y="236" text-anchor="middle" fill="#172033" font-family="Arial, sans-serif" font-size="22" font-weight="700">API Spring Boot</text>
+  <text x="810" y="270" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="17">Règles métier et sécurité</text>
+  <text x="810" y="298" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="17">Java 21</text>
+
+  <text x="1160" y="236" text-anchor="middle" fill="#172033" font-family="Arial, sans-serif" font-size="22" font-weight="700">PostgreSQL</text>
+  <text x="1160" y="270" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="17">Comptes et métadonnées</text>
+  <text x="1160" y="298" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="17">Spring Data JPA</text>
+
+  <line x1="310" y1="260" x2="360" y2="260" stroke="#3f4a5a" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="615" y1="260" x2="665" y2="260" stroke="#3f4a5a" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="945" y1="260" x2="1000" y2="260" stroke="#3f4a5a" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="640" y="232" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="14">REST / JSON</text>
+  <text x="977" y="232" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="14">JPA</text>
+
+  <line x1="810" y1="330" x2="810" y2="408" stroke="#3f4a5a" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="835" y="377" fill="#5c6675" font-family="Arial, sans-serif" font-size="15">contenu</text>
+
+  <g filter="url(#shadow)">
+    <rect x="675" y="420" width="270" height="105" rx="12" fill="#ffffff" stroke="#8b96a8" stroke-width="2"/>
+    <rect x="415" y="590" width="270" height="105" rx="12" fill="#fff8ed" stroke="#d49a3a" stroke-width="2"/>
+    <rect x="935" y="590" width="270" height="105" rx="12" fill="#f1f4ff" stroke="#687cc5" stroke-width="2"/>
+  </g>
+
+  <text x="810" y="463" text-anchor="middle" fill="#172033" font-family="Arial, sans-serif" font-size="22" font-weight="700">StorageService</text>
+  <text x="810" y="494" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="16">Une seule interface de stockage</text>
+
+  <line x1="760" y1="525" x2="590" y2="582" stroke="#3f4a5a" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="860" y1="525" x2="1030" y2="582" stroke="#3f4a5a" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="642" y="560" fill="#5c6675" font-family="Arial, sans-serif" font-size="15">mode local</text>
+  <text x="938" y="560" fill="#5c6675" font-family="Arial, sans-serif" font-size="15">mode s3</text>
+
+  <text x="550" y="634" text-anchor="middle" fill="#172033" font-family="Arial, sans-serif" font-size="21" font-weight="700">Stockage local privé</text>
+  <text x="550" y="665" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="16">backend/storage</text>
+  <text x="1070" y="634" text-anchor="middle" fill="#172033" font-family="Arial, sans-serif" font-size="21" font-weight="700">Bucket AWS S3 privé</text>
+  <text x="1070" y="665" text-anchor="middle" fill="#5c6675" font-family="Arial, sans-serif" font-size="16">aucune URL publique</text>
+
+  <rect x="65" y="385" width="490" height="135" rx="10" fill="#ffffff" stroke="#d9dfe8"/>
+  <text x="90" y="421" fill="#172033" font-family="Arial, sans-serif" font-size="17" font-weight="700">Échanges principaux</text>
+  <circle cx="98" cy="451" r="5" fill="#e86f61"/>
+  <text x="116" y="457" fill="#5c6675" font-family="Arial, sans-serif" font-size="15">JWT pour les routes privées</text>
+  <circle cx="98" cy="480" r="5" fill="#4c7fc1"/>
+  <text x="116" y="486" fill="#5c6675" font-family="Arial, sans-serif" font-size="15">multipart pour envoyer le fichier</text>
+  <circle cx="98" cy="509" r="5" fill="#3f9067"/>
+  <text x="116" y="515" fill="#5c6675" font-family="Arial, sans-serif" font-size="15">téléchargement transmis en flux</text>
+</svg>

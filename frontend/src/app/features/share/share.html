@@ -1,0 +1,77 @@
+<main class="share-page">
+  <header class="site-header">
+    <a class="brand" routerLink="/" aria-label="Accueil DataShare">DataShare</a>
+    <a class="login-link" routerLink="/login">Se connecter</a>
+  </header>
+
+  <section
+    class="download-card"
+    aria-labelledby="download-title"
+    [attr.aria-busy]="state() === 'loading' || isSubmitting()"
+  >
+    <h1 id="download-title">Télécharger un fichier</h1>
+
+    @if (state() === 'loading') {
+      <p class="loading-message" role="status">Chargement des informations du fichier…</p>
+    } @else if (state() === 'expired' || state() === 'unavailable') {
+      <p class="notice notice-error" role="alert">
+        <span aria-hidden="true">!</span>
+        {{ feedback() }}
+      </p>
+    } @else if (sharedFile(); as file) {
+      <div class="file-summary">
+        <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+          <path d="M6.5 3.5h7l4 4v13h-11z" />
+          <path d="M13.5 3.5v4h4M9.5 12h5M9.5 15h5" />
+        </svg>
+        <span class="file-details">
+          <strong>{{ file.originalName }}</strong>
+          <small>{{ formatSize(file.size) }}</small>
+        </span>
+      </div>
+
+      <p class="notice" [class.notice-warning]="expiresSoon(file.expiresAt)">
+        <span aria-hidden="true">i</span>
+        {{ expirationMessage(file.expiresAt) }}
+      </p>
+
+      @if (file.passwordProtected) {
+        <div class="field">
+          <label for="download-password">Mot de passe</label>
+          <input
+            id="download-password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Saisissez le mot de passe…"
+            [formControl]="password"
+            [attr.aria-invalid]="password.invalid && password.touched"
+            aria-describedby="download-feedback"
+          />
+        </div>
+      }
+
+      @if (feedback()) {
+        <p id="download-feedback" class="download-feedback" role="alert">
+          <span aria-hidden="true">!</span>
+          {{ feedback() }}
+        </p>
+      } @else {
+        <span id="download-feedback" class="visually-hidden" aria-live="assertive"></span>
+      }
+
+      <button
+        class="download-button"
+        type="button"
+        [disabled]="isSubmitting() || (file.passwordProtected && password.invalid)"
+        (click)="download()"
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+          <path d="M12 5v11m0 0-4-4m4 4 4-4M5 19h14" />
+        </svg>
+        {{ isSubmitting() ? 'Préparation…' : 'Télécharger' }}
+      </button>
+    }
+  </section>
+
+  <footer>Copyright DataShare<sup>®</sup> 2025</footer>
+</main>
