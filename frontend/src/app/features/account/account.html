@@ -62,16 +62,43 @@
         <p class="operation-feedback" role="status">{{ operationFeedback() }}</p>
       }
 
-      <nav class="pagination" aria-label="Pages de l’historique">
-        <button type="button" (click)="changePage(-1)" [disabled]="page() === 0 || isLoading()">Précédent</button>
-        <span>Page {{ page() + 1 }}</span>
-        <button type="button" (click)="changePage(1)" [disabled]="!hasNext() || isLoading()">Suivant</button>
-      </nav>
+      <div class="history-controls">
+        <div class="filters" role="group" aria-label="Filtrer les fichiers">
+          <button type="button" [class.active]="selectedFilter() === 'ALL'" [attr.aria-pressed]="selectedFilter() === 'ALL'" (click)="selectFilter('ALL')">Tous</button>
+          <button type="button" [class.active]="selectedFilter() === 'ACTIVE'" [attr.aria-pressed]="selectedFilter() === 'ACTIVE'" (click)="selectFilter('ACTIVE')">Actifs</button>
+          <button type="button" [class.active]="selectedFilter() === 'EXPIRED'" [attr.aria-pressed]="selectedFilter() === 'EXPIRED'" (click)="selectFilter('EXPIRED')">Expirés</button>
+        </div>
 
-      <div class="filters" role="group" aria-label="Filtrer les fichiers">
-        <button type="button" [class.active]="selectedFilter() === 'ALL'" [attr.aria-pressed]="selectedFilter() === 'ALL'" (click)="selectFilter('ALL')">Tous</button>
-        <button type="button" [class.active]="selectedFilter() === 'ACTIVE'" [attr.aria-pressed]="selectedFilter() === 'ACTIVE'" (click)="selectFilter('ACTIVE')">Actifs</button>
-        <button type="button" [class.active]="selectedFilter() === 'EXPIRED'" [attr.aria-pressed]="selectedFilter() === 'EXPIRED'" (click)="selectFilter('EXPIRED')">Expirés</button>
+        @if (page() > 0 || hasNext()) {
+          <nav class="pagination" aria-label="Pages de l’historique">
+            <button
+              type="button"
+              aria-label="Afficher la page précédente"
+              (click)="changePage(-1)"
+              [disabled]="page() === 0 || isLoading()"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="m14 7-5 5 5 5" />
+              </svg>
+              <span>Précédent</span>
+            </button>
+            <span class="page-indicator" aria-current="page">
+              <span>Page</span>
+              <strong>{{ page() + 1 }}</strong>
+            </span>
+            <button
+              type="button"
+              aria-label="Afficher la page suivante"
+              (click)="changePage(1)"
+              [disabled]="!hasNext() || isLoading()"
+            >
+              <span>Suivant</span>
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="m10 7 5 5-5 5" />
+              </svg>
+            </button>
+          </nav>
+        }
       </div>
 
       @if (isLoading()) {
