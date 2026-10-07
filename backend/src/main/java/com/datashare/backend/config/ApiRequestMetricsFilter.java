@@ -8,9 +8,11 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
+@Order(-110)
 @Slf4j
 public class ApiRequestMetricsFilter extends OncePerRequestFilter {
 
@@ -24,6 +26,15 @@ public class ApiRequestMetricsFilter extends OncePerRequestFilter {
 		try {
 			filterChain.doFilter(request, response);
 		} finally {
+			int status = response.getStatus();
+			String group = endpointGroup(request.getRequestURI());
+			if (status == 401 || status == 403
+					|| (group.equals("auth") && request.getMethod().equals("POST"))
+					|| request.getMethod().equals("DELETE")) {
+				log.info("event=security action={} endpoint_group={} outcome={} status={}",
+						request.getMethod().equals("DELETE") ? "deletion" : "authentication",
+						group, status < 400 ? "allowed" : "denied", status);
+			}
 			long durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt);
 			log.info(
 					"event=http_request method={} endpoint_group={} status={} duration_ms={} request_bytes={}",

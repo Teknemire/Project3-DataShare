@@ -19,11 +19,14 @@ public class FileExpirationService {
 
 	@Scheduled(fixedDelayString = "${app.files.expiration-cleanup-delay-ms}")
 	public void deleteExpiredContents() {
-		for (FileMetadata file : fileMetadataRepository.findAllByExpiresAtLessThanEqual(Instant.now())) {
+		for (FileMetadata file : fileMetadataRepository
+				.findTop100ByContentDeletedFalseAndExpiresAtLessThanEqualOrderByExpiresAtAscIdAsc(Instant.now())) {
 			try {
 				storageService.delete(file.getStorageKey());
 				if (file.getUser() == null) {
 					fileMetadataRepository.delete(file);
+				} else {
+					fileMetadataRepository.markContentDeleted(file.getId());
 				}
 			} catch (RuntimeException exception) {
 				log.warn("La suppression d'un transfert expiré a échoué et sera retentée.", exception);

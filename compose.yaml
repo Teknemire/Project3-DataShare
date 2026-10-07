@@ -37,10 +37,22 @@ services:
       EXPIRATION_CLEANUP_DELAY_MS: ${EXPIRATION_CLEANUP_DELAY_MS:-900000}
       DOWNLOAD_TICKET_EXPIRATION: ${DOWNLOAD_TICKET_EXPIRATION:-PT1M}
       DOWNLOAD_STREAM_TIMEOUT: ${DOWNLOAD_STREAM_TIMEOUT:-3600s}
+      FLYWAY_BASELINE_ON_MIGRATE: ${FLYWAY_BASELINE_ON_MIGRATE:-false}
+      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+      RATE_LIMIT_REQUESTS_PER_MINUTE: ${RATE_LIMIT_REQUESTS_PER_MINUTE:-120}
+      RATE_LIMIT_AUTH_PER_MINUTE: ${RATE_LIMIT_AUTH_PER_MINUTE:-10}
+      RATE_LIMIT_UPLOADS_PER_MINUTE: ${RATE_LIMIT_UPLOADS_PER_MINUTE:-10}
+      RATE_LIMIT_DOWNLOADS_PER_MINUTE: ${RATE_LIMIT_DOWNLOADS_PER_MINUTE:-20}
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     volumes:
       - ./backend/storage:/data/files
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,7 +64,8 @@ services:
     ports:
       - "${FRONTEND_PORT:-4200}:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

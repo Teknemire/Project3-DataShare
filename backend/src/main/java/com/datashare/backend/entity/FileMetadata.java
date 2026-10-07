@@ -61,6 +61,9 @@ public class FileMetadata {
 	@Column(name = "expires_at", nullable = false)
 	private Instant expiresAt;
 
+	@Column(name = "content_deleted", nullable = false)
+	private boolean contentDeleted;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")
 	private User user;

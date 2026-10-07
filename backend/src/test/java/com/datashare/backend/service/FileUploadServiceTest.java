@@ -15,7 +15,6 @@ import com.datashare.backend.entity.FileMetadata;
 import com.datashare.backend.entity.User;
 import com.datashare.backend.exception.InvalidFileException;
 import com.datashare.backend.exception.TagAuthenticationRequiredException;
-import com.datashare.backend.repository.FileMetadataRepository;
 import com.datashare.backend.repository.UserRepository;
 import com.datashare.backend.storage.StorageService;
 import java.util.List;
@@ -37,7 +36,7 @@ class FileUploadServiceTest {
 	private UserRepository userRepository;
 
 	@Mock
-	private FileMetadataRepository fileMetadataRepository;
+	private FileMetadataWriter metadataWriter;
 
 	@Mock
 	private StorageService storageService;
@@ -48,7 +47,7 @@ class FileUploadServiceTest {
 	void setUp() {
 		service = new FileUploadService(
 				userRepository,
-				fileMetadataRepository,
+				metadataWriter,
 				new FileValidationService(),
 				storageService,
 				new BCryptPasswordEncoder());
@@ -61,14 +60,14 @@ class FileUploadServiceTest {
 		MockMultipartFile file = new MockMultipartFile(
 				"file", "photo.jpg", "image/jpeg", new byte[] {1, 2, 3, 4});
 		when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(owner));
-		when(fileMetadataRepository.saveAndFlush(any(FileMetadata.class)))
-				.thenAnswer(invocation -> invocation.getArgument(0));
+		when(metadataWriter.save(any(FileMetadata.class), any(), any()))
+				.thenAnswer(invocation -> FileResponse.from(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2)));
 
 		FileResponse response = service.upload(
 				"user@example.com", file, 7, "secret1", List.of("Projet", " Urgent "));
 
 		ArgumentCaptor<FileMetadata> metadataCaptor = ArgumentCaptor.forClass(FileMetadata.class);
-		verify(fileMetadataRepository).saveAndFlush(metadataCaptor.capture());
+		verify(metadataWriter).save(metadataCaptor.capture(), any(), any());
 		FileMetadata metadata = metadataCaptor.getValue();
 		assertThat(metadata.getOriginalName()).isEqualTo("photo.jpg");
 		assertThat(metadata.getExpiresAt()).isEqualTo(metadata.getCreatedAt().plusSeconds(7 * 86_400L));
@@ -84,13 +83,13 @@ class FileUploadServiceTest {
 	void storesAnAnonymousUploadWithoutAnOwner() {
 		MockMultipartFile file = new MockMultipartFile(
 				"file", "photo.jpg", "image/jpeg", new byte[] {1, 2, 3, 4});
-		when(fileMetadataRepository.saveAndFlush(any(FileMetadata.class)))
-				.thenAnswer(invocation -> invocation.getArgument(0));
+		when(metadataWriter.save(any(FileMetadata.class), any(), any()))
+				.thenAnswer(invocation -> FileResponse.from(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2)));
 
 		FileResponse response = service.upload(null, file, null, null, null);
 
 		ArgumentCaptor<FileMetadata> metadataCaptor = ArgumentCaptor.forClass(FileMetadata.class);
-		verify(fileMetadataRepository).saveAndFlush(metadataCaptor.capture());
+		verify(metadataWriter).save(metadataCaptor.capture(), any(), any());
 		FileMetadata metadata = metadataCaptor.getValue();
 		assertThat(metadata.getUser()).isNull();
 		assertThat(metadata.getExpiresAt()).isEqualTo(metadata.getCreatedAt().plusSeconds(7 * 86_400L));
@@ -149,7 +148,7 @@ class FileUploadServiceTest {
 		MockMultipartFile file = new MockMultipartFile(
 				"file", "photo.jpg", "image/jpeg", new byte[] {1, 2, 3, 4});
 		when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(owner));
-		when(fileMetadataRepository.saveAndFlush(any(FileMetadata.class)))
+		when(metadataWriter.save(any(FileMetadata.class), any(), any()))
 				.thenThrow(new IllegalStateException("database unavailable"));
 
 		assertThatThrownBy(() -> service.upload("user@example.com", file, 7, null, null))

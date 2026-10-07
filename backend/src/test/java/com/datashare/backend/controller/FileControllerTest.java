@@ -68,7 +68,7 @@ class FileControllerTest {
 				Instant.parse("2026-09-22T12:00:00Z"),
 				Instant.parse("2026-09-29T12:00:00Z"),
 				true, "http://localhost:4200/share/token", FileStatus.ACTIVE, List.of("Projet"));
-		when(fileQueryService.listOwnedFiles("user@example.com")).thenReturn(List.of(response));
+		when(fileQueryService.listOwnedFiles("user@example.com", 0, 20, null)).thenReturn(List.of(response));
 
 		mockMvc.perform(get("/api/files")
 					.with(jwt().jwt(token -> token.subject("user@example.com"))))

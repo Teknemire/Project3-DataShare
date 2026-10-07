@@ -37,6 +37,77 @@ class DataShareApplicationIntegrationTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 
+	@org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+	private com.datashare.backend.storage.StorageService storageService;
+
+	@Autowired
+	private com.datashare.backend.repository.FileMetadataRepository fileRepository;
+
+	@Autowired
+	private com.datashare.backend.repository.UserRepository userRepository;
+
+	@Autowired
+	private com.datashare.backend.service.FileExpirationService expirationService;
+
+	@Test
+	void writesUploadContentWithoutAnActiveTransaction() throws Exception {
+		org.mockito.Mockito.doAnswer(invocation -> {
+			assertThat(org.springframework.transaction.support.TransactionSynchronizationManager
+					.isActualTransactionActive()).isFalse();
+			return invocation.callRealMethod();
+		}).when(storageService).save(org.mockito.ArgumentMatchers.anyString(),
+				org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyLong(),
+				org.mockito.ArgumentMatchers.anyString());
+		mockMvc.perform(multipart("/api/files").file(new MockMultipartFile(
+				"file", "outside-transaction.txt", "text/plain", new byte[] {1})))
+				.andExpect(status().isCreated());
+	}
+
+	@Test
+	void paginatesAndFiltersOnlyOwnedHistoryAndRejectsInvalidSizes() throws Exception {
+		String token = registerAndLogin("pagination@datashare.test", "Password123!");
+		var owner = userRepository.findByEmail("pagination@datashare.test").orElseThrow();
+		java.time.Instant now = java.time.Instant.now();
+		for (int i = 0; i < 3; i++) {
+			fileRepository.saveAndFlush(new com.datashare.backend.entity.FileMetadata(
+					"page-" + i + ".txt", "page-key-" + i, "text/plain", 1, "page-token-" + i,
+					null, now.plusSeconds(i), now.plusSeconds(i == 0 ? -60 : 3600), owner));
+		}
+		mockMvc.perform(get("/api/files").param("size", "1").param("page", "1")
+				.header(HttpHeaders.AUTHORIZATION, bearer(token)))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+				.andExpect(jsonPath("$[0].originalName").value("page-1.txt"));
+		mockMvc.perform(get("/api/files").param("status", "EXPIRED")
+				.header(HttpHeaders.AUTHORIZATION, bearer(token)))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+				.andExpect(jsonPath("$[0].originalName").value("page-0.txt"));
+		mockMvc.perform(get("/api/files").param("size", "101")
+				.header(HttpHeaders.AUTHORIZATION, bearer(token))).andExpect(status().isBadRequest());
+		mockMvc.perform(get("/api/files").param("page", "-1")
+				.header(HttpHeaders.AUTHORIZATION, bearer(token))).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void purgesOwnedContentOnlyOnceAndRetainsItsHistory() {
+		var owner = userRepository.saveAndFlush(new com.datashare.backend.entity.User("purge@datashare.test", "hash"));
+		var now = java.time.Instant.now();
+		var file = fileRepository.saveAndFlush(new com.datashare.backend.entity.FileMetadata(
+				"expired.txt", "purge-key", "text/plain", 1, "purge-token", null,
+				now.minusSeconds(120), now.minusSeconds(60), owner));
+		expirationService.deleteExpiredContents();
+		expirationService.deleteExpiredContents();
+		org.mockito.Mockito.verify(storageService, org.mockito.Mockito.times(1)).delete("purge-key");
+		assertThat(fileRepository.findById(file.getId()).orElseThrow().isContentDeleted()).isTrue();
+	}
+
+	@Test
+	void exposesOnlyThePublicHealthStatus() throws Exception {
+		mockMvc.perform(get("/actuator/health"))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"))
+				.andExpect(jsonPath("$.components").doesNotExist());
+		mockMvc.perform(get("/actuator/env")).andExpect(status().isUnauthorized());
+	}
+
 	@Test
 	void deletedAccountTokenCannotAccessARecreatedAccountWithTheSameEmail() throws Exception {
 		String email = "recreated@datashare.test";

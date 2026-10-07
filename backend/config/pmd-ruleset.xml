@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="DataShare" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
+    <description>Erreurs Java, sécurité et ressources ; règles compatibles avec Lombok.</description>
+    <rule ref="category/java/errorprone.xml/CloseResource" />
+    <rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop" />
+    <rule ref="category/java/errorprone.xml/BrokenNullCheck" />
+    <rule ref="category/java/errorprone.xml/EqualsNull" />
+    <rule ref="category/java/errorprone.xml/EmptyCatchBlock" />
+    <rule ref="category/java/security.xml" />
+    <rule ref="category/java/codestyle.xml/UnnecessaryImport" />
+</ruleset>

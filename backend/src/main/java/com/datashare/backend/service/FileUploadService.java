@@ -7,7 +7,6 @@ import com.datashare.backend.exception.CurrentUserNotFoundException;
 import com.datashare.backend.exception.InvalidFileException;
 import com.datashare.backend.exception.InvalidPasswordException;
 import com.datashare.backend.exception.TagAuthenticationRequiredException;
-import com.datashare.backend.repository.FileMetadataRepository;
 import com.datashare.backend.repository.UserRepository;
 import com.datashare.backend.storage.StorageService;
 import java.io.IOException;
@@ -27,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -43,7 +43,7 @@ public class FileUploadService {
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
 	private final UserRepository userRepository;
-	private final FileMetadataRepository fileMetadataRepository;
+	private final FileMetadataWriter metadataWriter;
 	private final FileValidationService fileValidationService;
 	private final StorageService storageService;
 	private final PasswordEncoder passwordEncoder;
@@ -51,7 +51,7 @@ public class FileUploadService {
 	@Value("${app.frontend.public-url}")
 	private String frontendPublicUrl;
 
-	@Transactional
+	@Transactional(propagation = Propagation.NEVER)
 	public FileResponse upload(
 			String authenticatedEmail,
 			MultipartFile multipartFile,
@@ -74,13 +74,15 @@ public class FileUploadService {
 		Instant expiresAt = createdAt.plus(validatedExpirationDays, ChronoUnit.DAYS);
 
 		try {
-			storageService.save(
-					storageKey,
-					multipartFile.getInputStream(),
-					multipartFile.getSize(),
-					validatedFile.contentType()
-			);
-			FileMetadata savedFile = fileMetadataRepository.saveAndFlush(new FileMetadata(
+			try (var content = multipartFile.getInputStream()) {
+				storageService.save(
+						storageKey,
+						content,
+						multipartFile.getSize(),
+						validatedFile.contentType()
+				);
+			}
+			return metadataWriter.save(new FileMetadata(
 					validatedFile.originalName(),
 					storageKey,
 					validatedFile.contentType(),
@@ -91,9 +93,9 @@ public class FileUploadService {
 					expiresAt,
 					owner,
 					validatedTags
-			));
-			return FileResponse.from(savedFile, frontendPublicUrl, createdAt);
+			), frontendPublicUrl, createdAt);
 		} catch (IOException exception) {
+			tryCleanup(storageKey);
 			throw new InvalidFileException("Impossible de lire le fichier envoyé.");
 		} catch (RuntimeException exception) {
 			tryCleanup(storageKey);

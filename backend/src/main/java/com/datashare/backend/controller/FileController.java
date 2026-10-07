@@ -1,6 +1,8 @@
 package com.datashare.backend.controller;
 
 import com.datashare.backend.dto.FileResponse;
+import com.datashare.backend.dto.FileStatus;
+import com.datashare.backend.exception.InvalidFileException;
 import com.datashare.backend.exception.ApiError;
 import com.datashare.backend.service.FileDeletionService;
 import com.datashare.backend.service.FileQueryService;
@@ -48,8 +50,14 @@ public class FileController {
 			@ApiResponse(responseCode = "401", description = "Authentification requise",
 					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class)))
 	})
-	public List<FileResponse> list(Authentication authentication) {
-		return fileQueryService.listOwnedFiles(authentication.getName());
+	public List<FileResponse> list(Authentication authentication,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "20") int size,
+			@RequestParam(required = false) FileStatus status) {
+		if (page < 0 || page > 1_000_000 || size < 1 || size > 100) {
+			throw new InvalidFileException("Pagination invalide : page de 0 à 1000000, taille de 1 à 100.");
+		}
+		return fileQueryService.listOwnedFiles(authentication.getName(), page, size, status);
 	}
 
 	@GetMapping("/{id}")

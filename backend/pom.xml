@@ -29,8 +29,8 @@
 	<properties>
 		<java.version>21</java.version>
 		<aws.java.sdk.version>2.27.21</aws.java.sdk.version>
-		<jackson-2-bom.version>2.21.6</jackson-2-bom.version>
-		<jackson-bom.version>3.1.6</jackson-bom.version>
+		<jackson-2-bom.version>2.21.7</jackson-2-bom.version>
+		<jackson-bom.version>3.1.7</jackson-bom.version>
 		<tomcat.version>11.0.26</tomcat.version>
 	</properties>
 	<dependencyManagement>
@@ -45,6 +45,18 @@
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-flyway</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -115,6 +127,19 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.28.0</version>
+				<configuration>
+					<rulesets><ruleset>config/pmd-ruleset.xml</ruleset></rulesets>
+					<printFailingErrors>true</printFailingErrors>
+					<failOnViolation>true</failOnViolation>
+				</configuration>
+				<executions><execution><id>static-analysis</id><phase>verify</phase>
+					<goals><goal>check</goal></goals>
+				</execution></executions>
+			</plugin>
+			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
@@ -158,6 +183,7 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.13</version>
+				<configuration><append>false</append></configuration>
 				<executions>
 					<execution>
 						<goals>

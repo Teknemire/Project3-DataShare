@@ -56,7 +56,8 @@ public class JwtConfig {
 						return OAuth2TokenValidatorResult.success();
 					}
 				} catch (IllegalArgumentException exception) {
-					// Un identifiant absent ou mal formé ne peut pas authentifier un compte.
+					return OAuth2TokenValidatorResult.failure(
+							new OAuth2Error("invalid_token", "Authentification invalide.", null));
 				}
 			}
 			return OAuth2TokenValidatorResult.failure(

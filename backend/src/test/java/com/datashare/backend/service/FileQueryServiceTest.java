@@ -40,12 +40,12 @@ class FileQueryServiceTest {
 	void listsOnlyTheAuthenticatedUsersFilesWithCalculatedStatuses() {
 		FileMetadata active = file("active.pdf", "active-token", Instant.now().plusSeconds(3_600));
 		FileMetadata expired = file("expired.pdf", "expired-token", Instant.now().minusSeconds(60));
-		when(fileMetadataRepository.findAllByUser_EmailOrderByCreatedAtDescIdDesc("owner@example.com"))
+		when(fileMetadataRepository.findOwnedPage(org.mockito.ArgumentMatchers.eq("owner@example.com"), org.mockito.ArgumentMatchers.eq("ALL"), org.mockito.ArgumentMatchers.any(Instant.class), org.mockito.ArgumentMatchers.eq(org.springframework.data.domain.PageRequest.of(0, 20))))
 				.thenReturn(List.of(active, expired));
 
-		List<FileResponse> response = service.listOwnedFiles("owner@example.com");
+		List<FileResponse> response = service.listOwnedFiles("owner@example.com", 0, 20, null);
 
-		verify(fileMetadataRepository).findAllByUser_EmailOrderByCreatedAtDescIdDesc("owner@example.com");
+		verify(fileMetadataRepository).findOwnedPage(org.mockito.ArgumentMatchers.eq("owner@example.com"), org.mockito.ArgumentMatchers.eq("ALL"), org.mockito.ArgumentMatchers.any(Instant.class), org.mockito.ArgumentMatchers.eq(org.springframework.data.domain.PageRequest.of(0, 20)));
 		assertThat(response).extracting(FileResponse::originalName)
 				.containsExactly("active.pdf", "expired.pdf");
 		assertThat(response).extracting(FileResponse::status)

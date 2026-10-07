@@ -56,6 +56,12 @@ if (!scenario || ['--help', '-h'].includes(scenario)) {
 
 switch (scenario) {
   case 'k6':
+    {
+      const uploadLimit = Number(readOutput('docker', ['compose', 'exec', '-T', 'backend', 'printenv', 'RATE_LIMIT_UPLOADS_PER_MINUTE']));
+      if (!Number.isFinite(uploadLimit) || uploadLimit < 10000) {
+        throw new Error('Le scénario k6 exige une instance de test configurée avec compose.performance.yaml. Consulter docs/PERF.md.');
+      }
+    }
     section(1, 'Charge k6', '5 utilisateurs virtuels repetent un upload de 112 kB pendant 15 secondes.');
     run('docker', [
       'run', '--rm', '-i',

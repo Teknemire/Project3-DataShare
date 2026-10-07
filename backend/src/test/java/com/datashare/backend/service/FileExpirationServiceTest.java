@@ -35,7 +35,7 @@ class FileExpirationServiceTest {
 		User owner = new User("user@example.com", "hash");
 		FileMetadata first = expiredFile("first", owner);
 		FileMetadata second = expiredFile("second", owner);
-		when(repository.findAllByExpiresAtLessThanEqual(ArgumentMatchers.any(Instant.class)))
+		when(repository.findTop100ByContentDeletedFalseAndExpiresAtLessThanEqualOrderByExpiresAtAscIdAsc(ArgumentMatchers.any(Instant.class)))
 				.thenReturn(List.of(first, second));
 		org.mockito.Mockito.doThrow(new StorageException("unavailable"))
 				.when(storageService).delete("first");
@@ -46,12 +46,13 @@ class FileExpirationServiceTest {
 		verify(storageService).delete("second");
 		verify(repository, never()).delete(first);
 		verify(repository, never()).delete(second);
+		verify(repository).markContentDeleted(second.getId());
 	}
 
 	@Test
 	void removesAnonymousMetadataAfterItsExpiredContent() {
 		FileMetadata anonymousFile = expiredFile("anonymous", null);
-		when(repository.findAllByExpiresAtLessThanEqual(ArgumentMatchers.any(Instant.class)))
+		when(repository.findTop100ByContentDeletedFalseAndExpiresAtLessThanEqualOrderByExpiresAtAscIdAsc(ArgumentMatchers.any(Instant.class)))
 				.thenReturn(List.of(anonymousFile));
 
 		service.deleteExpiredContents();

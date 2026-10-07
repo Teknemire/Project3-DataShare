@@ -2,6 +2,7 @@ FROM maven:3.9.11-eclipse-temurin-21-alpine AS build
 WORKDIR /workspace
 
 COPY pom.xml ./
+COPY config ./config
 COPY src ./src
 RUN mvn --batch-mode -DskipTests package
 

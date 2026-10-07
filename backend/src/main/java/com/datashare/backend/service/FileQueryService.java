@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageRequest;
+import com.datashare.backend.dto.FileStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -22,9 +24,10 @@ public class FileQueryService {
 	private String frontendPublicUrl;
 
 	@Transactional(readOnly = true)
-	public List<FileResponse> listOwnedFiles(String authenticatedEmail) {
+	public List<FileResponse> listOwnedFiles(String authenticatedEmail, int page, int size, FileStatus status) {
 		Instant now = Instant.now();
-		return fileMetadataRepository.findAllByUser_EmailOrderByCreatedAtDescIdDesc(authenticatedEmail)
+		return fileMetadataRepository.findOwnedPage(authenticatedEmail, status == null ? "ALL" : status.name(),
+				now, PageRequest.of(page, size))
 				.stream()
 				.map(file -> FileResponse.from(file, frontendPublicUrl, now))
 				.toList();
