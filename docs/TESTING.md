@@ -1,10 +1,14 @@
 # Plan de tests DataShare
 
+> Améliorations de la solution : les mesures de charge, scans et captures antérieurs restent des références historiques.
+
 ## En bref
 
 Les tests vérifient que DataShare fonctionne comme prévu, aussi bien sur une règle isolée que sur un parcours complet dans le navigateur. La priorité porte sur l'authentification, le transfert, le partage, le téléchargement, l'historique, la suppression et la protection des données.
 
-Les suites courantes ont été revérifiées le 29 septembre 2026. Les mesures lourdes de 1 Go et de charge restent celles du 24 septembre et n'ont pas été rejouées lors de cette correction.
+Les suites courantes ont été revérifiées le 29 septembre 2026. Les mesures lourdes de 1 Go et de charge restent celles du 24 septembre et n'ont pas été rejouées avec les améliorations récentes.
+
+La validation de la solution améliorée est distincte : 85 tests backend, 53 tests frontend, 6 scénarios Playwright sur PostgreSQL, ESLint et PMD sans violation. Les couvertures de lignes sont 89,43 % et 77,40 %. JaCoCo est configuré avec `append=false` pour ne pas cumuler les anciennes exécutions.
 
 Les tests sont répartis à trois niveaux :
 
@@ -27,7 +31,7 @@ Les tests sont répartis à trois niveaux :
 | Suppression d'un fichier | Backend/frontend unitaires, intégration, E2E | Seul le propriétaire supprime contenu et métadonnée après confirmation | Automatisée |
 | Suppression du compte | Backend/frontend unitaires, E2E | Mot de passe et confirmation requis ; fichiers, métadonnées et compte supprimés | Automatisée |
 | Upload anonyme | Backend/frontend unitaires, E2E | Upload possible sans JWT, sans tags ni historique propriétaire | Automatisée |
-| Accessibilité et mobile | Tests de composants, axe-core, E2E mobile | Aucun défaut WCAG automatisable sur les écrans testés ; menu mobile utilisable ; aucun débordement horizontal | Automatisée et revue visuelle |
+| Accessibilité et mobile | Tests de composants, axe-core, E2E mobile | Aucun défaut WCAG automatisable sur les écrans testés ; menu mobile utilisable ; aucun débordement horizontal | Automatisée et vérification visuelle |
 | Limite réelle de 1 Go | HTTP multipart, téléchargement en flux et SHA-256 | 1 000 000 000 octets acceptés et restitués à l'identique ; 1 000 000 001 octets refusés en `413 FILE_TOO_LARGE` | Automatisée sur stockage local |
 | Charge de fichiers volumineux | 5 clients HTTP simultanés à 100 Mo, 500 Mo et 1 Go | 15 uploads sur 15 réussis, sans erreur serveur | Automatisée séparément sur stockage local |
 

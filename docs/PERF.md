@@ -1,5 +1,7 @@
 # Performance de DataShare
 
+> Améliorations de la solution : les mesures de charge, scans et captures antérieurs restent des références historiques.
+
 ## En bref
 
 Les mesures cherchent à répondre à trois questions simples : l'envoi courant reste-t-il rapide, la limite réelle de 1 Go fonctionne-t-elle, et que se passe-t-il lorsque plusieurs gros fichiers arrivent en même temps ? Le poids du frontend et un téléchargement ralenti sont également contrôlés.
@@ -179,3 +181,23 @@ Le test k6 utilise un fichier modeste pour répéter assez de requêtes en peu d
 Les métriques navigateur viennent des chronomètres intégrés au navigateur, pas d'un score Lighthouse. Cette solution réutilise Playwright, déjà présent pour les tests. Pour comparer deux versions de manière honnête, il faut conserver le même navigateur, la même machine et un état de cache comparable.
 
 Sans argument, `node quality/run-performance.mjs` affiche les cinq scénarios disponibles et leur coût. Cette aide intégrée évite de mémoriser les commandes et empêche le lancement accidentel d'un test lourd.
+
+## Améliorations de la solution
+
+L’écriture du contenu se fait sans transaction ouverte ; une transaction courte enregistre ensuite les métadonnées. Une erreur de cette transaction déclenche une tentative de nettoyage. Un arrêt brutal entre les étapes peut laisser un fichier orphelin : prévoir une réconciliation du stockage si ce cas doit être garanti.
+
+L’historique est paginé en SQL avec un ordre stable (date puis UUID), 20 éléments par défaut et 100 au maximum. Les filtres ACTIVE/EXPIRED s’appliquent en base avant pagination. Les pages très profondes restent un cas à optimiser par curseur si nécessaire.
+
+La purge traite au plus 100 contenus expirés par passage et marque les contenus des transferts possédés comme supprimés. Un échec de suppression reste éligible au passage suivant. Un backlog important peut augmenter le délai de purge ; des échecs persistants sur les premiers éléments nécessitent une intervention.
+
+Le limiteur refuse l’excès de requêtes en `429` avec `Retry-After`. Il est actif par défaut et ses budgets sont séparés pour les authentifications, uploads et autorisations de téléchargement. Derrière un proxy, la limite utilise l’adresse socket du proxy ; un déploiement public doit mettre un limiteur partagé au niveau du proxy et définir les adresses de confiance. Aucune adresse déclarée arbitrairement dans `X-Forwarded-For` n’est acceptée par le limiteur applicatif.
+
+Le scénario k6 existant dépasse volontairement les limites de protection usuelles. Sur une instance locale réservée aux mesures, activer les limites plus élevées :
+
+```text
+docker compose -f compose.yaml -f compose.performance.yaml up -d backend
+node quality/run-performance.mjs k6
+docker compose up -d backend
+```
+
+Le lanceur vérifie cette configuration avant k6. Le dernier appel restaure les limites normales. Ne pas utiliser ce profil sur un service ouvert au public. Les anciens résultats k6 restent historiques ; ils ne mesurent pas la nouvelle version et ne constituent pas une preuve de résistance aux abus.

@@ -1,5 +1,7 @@
 # DataShare — Documentation technique
 
+> Améliorations de la solution : les mesures de charge, scans et captures antérieurs restent des références historiques.
+
 - **Projet :** DataShare
 - **Nature du document :** documentation technique
 - **Dernière mise à jour :** 2 octobre 2026
@@ -15,7 +17,7 @@ DataShare est une application de transfert temporaire de fichiers. Ce document e
 5. Sécurité et gestion des accès
 6. Qualité, tests et maintenance
 7. Processus d'installation et d'exécution
-8. Utilisation de l'IA dans le développement
+8. Utilisation de l'IA pour l'US07
 
 ## Architecture de l'application
 
@@ -103,6 +105,7 @@ Les tags sont ajoutés pendant l'upload d'un utilisateur connecté et affichés 
 | `downloadToken` | Identifiant public non prédictible du lien de partage ; distinct de `storageKey`. |
 | `downloadPasswordHash` | Présent seulement si l'expéditeur protège le téléchargement ; jamais retourné par l'API. |
 | `createdAt`, `expiresAt` | Date d'envoi et limite de validité, calculées côté serveur et exprimées comme instants UTC. |
+| `contentDeleted` | Champ technique de purge : vrai après suppression physique réussie ; évite de retraiter le contenu. |
 | `userId` | Référence du propriétaire authentifié ; valeur nulle pour un transfert anonyme. |
 | `FILE_TAG.tag` | Valeur libre de 30 caractères au plus, sans doublon pour un même fichier. |
 
@@ -123,7 +126,7 @@ Le contrat détaillé est généré par OpenAPI à partir du backend. Lorsque l'
 | `GET /api/auth/me` | JWT | Récupère l'utilisateur actuellement authentifié. |
 | `DELETE /api/users/me` | JWT | Supprime le compte après vérification du mot de passe courant ; `204`. |
 | `POST /api/files` | Public ; JWT facultatif | Reçoit un fichier multipart, une durée, un mot de passe facultatif et des tags réservés aux comptes ; `201` et lien de partage. |
-| `GET /api/files` | JWT | Liste uniquement les fichiers du propriétaire, actifs et expirés. |
+| `GET /api/files` | JWT | Liste les fichiers du propriétaire : `page=0`, `size=20` par défaut (100 maximum), filtre `status=ACTIVE` ou `EXPIRED` facultatif. |
 | `GET /api/files/{id}` | JWT et propriétaire | Lit une métadonnée privée. |
 | `DELETE /api/files/{id}` | JWT et propriétaire | Supprime contenu et métadonnées ; `204`. |
 | `GET /api/shares/{token}` | Public avec lien | Affiche nom, type, taille, expiration et protection du partage. |
@@ -143,7 +146,7 @@ L'upload transmet un seul fichier par requête avec les parties suivantes :
 | `password` | Facultative ; si présente et non vide, au moins 6 caractères et au plus 72 octets UTF-8. |
 | `tags` | Facultative et répétable ; réservée à un upload authentifié, chaque valeur limitée à 30 caractères, sans doublon insensible à la casse. |
 
-La réponse `FileResponse` inclut `id`, `originalName`, `mimeType`, `size`, `createdAt`, `expiresAt`, `passwordProtected`, `shareUrl`, `status` calculé et `tags`. Elle n'inclut jamais `storageKey` ou un hash. Le destinataire du lien reçoit moins d'informations : `SharedFileResponse` expose seulement nom, type, taille, expiration et indicateur de protection ; les tags et l'identité du propriétaire restent privés. La liste `/api/files` renvoie un tableau de `FileResponse`, éventuellement vide, trié par date d'envoi décroissante côté serveur. Angular applique les filtres visuels « Tous », « Actifs » et « Expirés » sur cette liste.
+La réponse `FileResponse` inclut `id`, `originalName`, `mimeType`, `size`, `createdAt`, `expiresAt`, `passwordProtected`, `shareUrl`, `status` calculé et `tags`. Elle n'inclut jamais `storageKey` ou un hash. Le destinataire du lien reçoit moins d'informations : `SharedFileResponse` expose seulement nom, type, taille, expiration et indicateur de protection ; les tags et l'identité du propriétaire restent privés. La liste `/api/files` renvoie une page de `FileResponse`, éventuellement vide, triée par date d'envoi décroissante côté serveur. Angular transmet la page et le filtre visuel « Tous », « Actifs » ou « Expirés » ; le backend filtre en base avant de construire la réponse.
 
 Pour télécharger un fichier non protégé, `POST /api/shares/{token}/download` reçoit `{}`. Pour un fichier protégé, il reçoit `{ "password": "…" }`. La réponse `DownloadAccessResponse` contient `downloadUrl` et la date `expiresAt` de cette autorisation temporaire. L'URL pointe vers le `GET` binaire interne avec un `ticket` signé. Cette dernière réponse comporte un type MIME approprié, une longueur et un en-tête `Content-Disposition: attachment` avec le nom du fichier. Le délai maximal Spring MVC du transfert est configurable par `DOWNLOAD_STREAM_TIMEOUT` (3600 secondes par défaut), indépendamment des 60 secondes de validité du ticket avant ouverture. Si le flux échoue après le début de l'envoi des octets, le navigateur constate une interruption ; le serveur ne peut plus remplacer ce flux par une erreur JSON.
 
@@ -169,7 +172,7 @@ Le token de partage et le ticket apparaissent nécessairement dans les URLs util
 
 Le serveur limite chaque fichier à 1 000 000 000 octets, autorise les formats usuels prévus et refuse notamment les extensions exécutables ou de script, ainsi que quelques signatures binaires exécutables. Le nom fourni par l'utilisateur n'est jamais utilisé comme chemin de stockage. Angular valide également les formulaires pour l'expérience utilisateur, sans remplacer les contrôles du serveur. L'API utilise un JWT Bearer transmis explicitement, sans cookie de session ; la protection CSRF est désactivée pour ce fonctionnement sans état. Angular échappe les données affichées, et les requêtes JPA sont paramétrées. Pour une exposition sur Internet, HTTPS doit être assuré par l'hébergement ; le Compose livré sert au développement local.
 
-La politique des types accepte les images, vidéos, sons, archives et documents usuels. Elle combine une liste d'extensions autorisées, des types MIME explicitement interdits et la détection de quelques signatures d'exécutables Windows, Linux et macOS. Ce contrôle réduit le risque courant, mais n'est ni un antivirus ni une analyse des archives. La version actuelle ne limite pas automatiquement le nombre de tentatives de connexion ou de téléchargement. Ces limites sont détaillées dans `SECURITY.md`.
+La politique des types accepte les images, vidéos, sons, archives et documents usuels. Elle combine une liste d'extensions autorisées, des types MIME explicitement interdits et la détection de quelques signatures d'exécutables Windows, Linux et macOS. Ce contrôle réduit le risque courant, mais n'est ni un antivirus ni une analyse des archives. Le filtre de limitation en mémoire applique des seuils distincts au trafic API, à l’authentification, aux uploads et aux autorisations de téléchargement. Il protège une instance ; un déploiement distribué nécessite un limiteur partagé. Les seuils sont détaillés dans `SECURITY.md`.
 
 ### Accessibilité et protection des données
 
@@ -181,16 +184,16 @@ La navigation utilise des contrôles HTML natifs lorsque c'est possible, des lab
 
 ## Qualité, tests et maintenance
 
-Les quatre fichiers de suivi demandés sont présents dans le dépôt :
+Les quatre fichiers de suivi sont présents dans le dépôt :
 
 | Fichier | Rôle et résultat documenté |
 |---|---|
-| `TESTING.md` | Plan et critères d'acceptation, commandes, 76 tests backend et 51 tests frontend réussis, 6 scénarios Playwright ; couverture de 86,68 % des lignes backend et 78,10 % frontend, au-dessus de l'objectif de 70 %. |
-| `SECURITY.md` | Mesures de sécurité et scans de dépendances : `npm audit` sans vulnérabilité détectée ; Tomcat et Jackson corrigés après analyse du JAR ; rescan final sans vulnérabilité HIGH ou CRITICAL détectée. |
+| `TESTING.md` | Plan et critères d'acceptation, commandes, 85 tests backend et 53 tests frontend réussis, 6 scénarios Playwright ; couverture de 89,43 % des lignes backend et 77,40 % frontend, au-dessus de l'objectif de 70 %. |
+| `SECURITY.md` | Mesures appliquées, limites connues et procédure reproductible de contrôle des dépendances avec `npm audit` et Trivy. |
 | `PERF.md` | Test k6 sur l'upload : 375 envois, 0 % d'erreur et p95 de 139,75 ms pour environ 112 kB en local ; tests de frontière à 1 Go et de cinq uploads parallèles ; métriques de logs et de navigateur. Le bundle Angular initial mesuré est de 278,61 kB bruts, sous l'avertissement fixé à 500 kB. |
 | `MAINTENANCE.md` | Procédure de mise à jour des dépendances, contrôle mensuel proposé, réaction aux alertes critiques, correction de défauts, sauvegarde et vérification après intervention. |
 
-Les tests backend isolent les services et contrôleurs ; un test d'intégration utilise H2 en compatibilité PostgreSQL. Les E2E traversent l'application complète avec PostgreSQL. Les tests de gros fichiers sont séparés des suites courantes car ils consomment plusieurs gigaoctets. Les mesures de performance sont celles de la machine locale utilisée pour les essais ; elles ne garantissent pas un débit identique sur S3 ou un hébergement distant. Les scénarios d'accessibilité automatisée ne remplacent pas une revue humaine complète.
+Les tests backend isolent les services et contrôleurs ; un test d'intégration utilise H2 en compatibilité PostgreSQL. Les E2E traversent l'application complète avec PostgreSQL. Les tests de gros fichiers sont séparés des suites courantes car ils consomment plusieurs gigaoctets. Les mesures de performance sont celles de la machine locale utilisée pour les essais ; elles ne garantissent pas un débit identique sur S3 ou un hébergement distant. Les scénarios d'accessibilité automatisée ne remplacent pas une vérification humaine complète.
 
 ### Plan de vérification
 
@@ -217,7 +220,7 @@ Les rapports HTML détaillés sont régénérés localement par les suites de te
 
 ### Résultats de sécurité et de performance
 
-Le scan npm ne signale aucune vulnérabilité. Le scan des manifestes est également nul, mais ne résout pas toutes les versions Maven héritées. L'analyse du JAR avait détecté trois CVE sur Tomcat 11.0.24, puis une CVE sur les deux générations de Jackson après la première correction. Tomcat a été aligné sur 11.0.26 et les BOM Jackson sur 2.21.6 et 3.1.6. Les 76 tests backend et les 6 scénarios Playwright passent après ces mises à jour ; le rescan final du JAR ne détecte aucune vulnérabilité HIGH ou CRITICAL. `SECURITY.md` conserve le périmètre et les rapports utilisés.
+Le contrôle des dépendances se relance avec `node quality/run-security.mjs`. Il construit et teste le backend, exécute `npm audit`, analyse les manifestes puis le JAR avec Trivy. Les rapports produits restent locaux et ne sont pas versionnés afin que chaque vérification reflète les bases de vulnérabilités disponibles au moment de son exécution.
 
 Le scénario k6 teste `POST /api/files` avec cinq utilisateurs virtuels pendant 15 secondes. Il réalise 375 uploads de fichiers d'environ 112 kB, sans requête en erreur ; le p95 de l'upload est de 139,75 ms en local, sous le seuil choisi d'une seconde. Un test distinct accepte exactement 1 000 000 000 octets, vérifie le SHA-256 du téléchargement et refuse 1 000 000 001 octets en `413`. Le test de cinq uploads simultanés réussit les 15 envois répartis sur 100 Mo, 500 Mo et 1 Go. Les cinq clients de ce dernier test partagent un compte de performance : la mesure porte sur la concurrence de l'upload, pas sur cinq identités indépendantes.
 
@@ -225,7 +228,7 @@ Le frontend respecte son budget : 278,61 kB bruts pour le bundle initial contre 
 
 ### Maintenance de l'application
 
-Avant une livraison, la procédure prévoit les builds, suites backend/frontend, E2E et scans. Une revue mensuelle des dépendances est proposée pendant la période active, avec intervention plus rapide en cas d'alerte critique. Pour corriger un défaut, on le reproduit, on ajoute un test utile lorsque la règle doit être protégée, on applique un changement ciblé puis on rejoue les suites concernées. Une évolution de schéma ou de stockage nécessite une sauvegarde cohérente de PostgreSQL et du contenu ; changer de stockage actif ne migre pas les fichiers existants. `MAINTENANCE.md` décrit les commandes et les risques à surveiller.
+Avant une livraison, la procédure prévoit les builds, suites backend/frontend, E2E et scans. Un contrôle mensuel des dépendances est proposé pendant la période active, avec intervention plus rapide en cas d'alerte critique. Pour corriger un défaut, on le reproduit, on ajoute un test utile lorsque la règle doit être protégée, on applique un changement ciblé puis on rejoue les suites concernées. Une évolution de schéma ou de stockage nécessite une sauvegarde cohérente de PostgreSQL et du contenu ; changer de stockage actif ne migre pas les fichiers existants. `MAINTENANCE.md` décrit les commandes et les risques à surveiller.
 
 ## Processus d'installation et d'exécution
 
@@ -266,7 +269,7 @@ Pour arrêter sans supprimer les données : `docker compose down`. La commande `
 
 ### Développement local et vérification
 
-Le développement sans conteneur applicatif demande Java 21, Maven 3.9 et une version de Node.js compatible avec Angular 20 (20.x à partir de 20.19, 22.x à partir de 22.12 ou 24+), en plus de PostgreSQL lancé par Compose. Dans un terminal PowerShell ouvert à la racine :
+Le développement sans conteneur applicatif demande Java 21, Maven 3.9 et une version de Node.js compatible avec Angular 20 (20.x à partir de 20.19, 22.x à partir de 22.12 ou 24.x), en plus de PostgreSQL lancé par Compose. Dans un terminal PowerShell ouvert à la racine :
 
 ```powershell
 docker compose up -d postgres
@@ -287,20 +290,28 @@ Le serveur Angular de développement transmet `/api` au backend via `proxy.conf.
 
 Pour contrôler le code, exécuter `mvn.cmd verify` dans `backend` ; cette commande lance les tests et le seuil JaCoCo. Dans `frontend`, installer avec `npm.cmd ci`, lancer `npm.cmd run test:coverage -- --browsers=ChromeHeadless`, puis `npm.cmd run build`. Sous Windows, définir `CHROME_BIN` vers l'exécutable Microsoft Edge pour la suite Karma. Avec l'application complète en marche, `npm.cmd run test:e2e` exécute Playwright, également configuré pour Edge. Le `README.md` et `TESTING.md` conservent les variantes détaillées.
 
-## Utilisation de l'IA dans le développement
+## Utilisation de l'IA pour l'US07
 
-### Tâche confiée et méthode de travail
+Cette section documente l'usage de l'IA exclusivement pour l'US07.
 
-US07, l'upload anonyme, est la user story choisie pour montrer concrètement l'utilisation de l'IA. La tâche consistait à ouvrir le parcours d'upload à un visiteur sans compte, côté backend et côté interface, en réutilisant les validations et le stockage existants. Le résultat attendu était précis : même route, mêmes contrôles et même lien de partage, mais aucun propriétaire, aucun tag, aucun historique personnel et aucun accès aux fonctions privées. L'assistance IA a aussi accompagné d'autres travaux de développement, de tests et de correction, toujours sous la validation du porteur du projet.
+### Périmètre de la tâche confiée
 
-Les commits `feat(backend-ai): implement anonymous uploads for US07` et `feat(frontend-ai): implement anonymous upload interface for US07` portent l'implémentation initiale. Les commits `refactor(backend-us07): align upload service with project conventions` et `refactor(frontend-us07): align authentication state with project conventions` tracent la reprise. L'historique permet de comparer les deux états ; le libellé d'un commit indique l'étape du travail, pas l'auteur exact de chaque ligne.
+L'assistance a été utilisée pour l'upload sans compte côté backend et frontend. Le résultat attendu était un accès public au même parcours d'upload, sans propriétaire, sans apparition dans un historique personnel et sans accès aux fonctions privées d'un compte. Les validations déjà présentes pour le fichier, l'expiration, le mot de passe et le stockage devaient rester applicables.
 
-### Revue et corrections
+Les deux commits `feat(ai)` consacrés à l'upload anonyme identifient l'implémentation initiale. Les deux commits `refactor(us07)` harmonisent cette implémentation avec les conventions du projet.
 
-La supervision a vérifié que le client ne choisit jamais un propriétaire via un `userId`, que les routes privées restent protégées, que les tags sont refusés pour un transfert anonyme, et que l'expiration, la génération du lien et le stockage suivent les mêmes règles que l'upload authentifié. La reprise a harmonisé le service d'upload et l'état d'authentification Angular avec les conventions existantes. Les tests couvrent l'appel public, l'absence de propriétaire, la durée par défaut, le refus des tags avant stockage et l'accès aux écrans pour un visiteur.
+### Contrôles et résultat
 
-Concrètement, la revue concerne `FileController` et `FileUploadService` pour le propriétaire facultatif, `SecurityConfig` pour ouvrir `POST /api/files` tout en protégeant les autres routes du groupe, `FileExpirationService` pour la purge anonyme, ainsi que les composants Angular d'accueil et d'upload. Les tests de contrôleur et de service vérifient notamment qu'un transfert anonyme crée une métadonnée sans utilisateur, avec sept jours par défaut, et que des tags anonymes sont rejetés avant l'écriture du contenu. Les tests frontend vérifient que le visiteur atteint le formulaire sans connexion tout en voyant une possibilité de se connecter. Les tests de régression sur l'upload authentifié et l'historique complètent cette revue.
+La partie backend respecte les contrôles attendus : seul `POST /api/files` devient public, l'identité provient du principal Spring et jamais d'un identifiant choisi par le client, un visiteur produit une métadonnée sans propriétaire, les routes privées restent protégées et les tests couvrent l'upload anonyme ainsi que sa purge.
 
-### Apports et limites
+Côté frontend, les propriétés qui déterminent l'état de connexion et la destination du lien de compte ont été harmonisées avec les conventions des composants existants. Le visiteur peut ouvrir `/upload`, tandis que l'accès au compte propose la connexion lorsqu'aucune session n'est présente. Les tests de l'accueil et de l'upload vérifient ce parcours.
 
-L'IA a fourni une première implémentation ciblée de l'US07 et a accéléré ce parcours. Cette première version ne suivait pas partout les conventions de code et de gestion d'état du projet : elle a donc été relue puis remaniée. L'IA ne remplace ni la vérification des droits, ni le contrôle des effets en base et dans le stockage, ni les essais de bout en bout. Le fichier `architecture.md` détaille cette revue technique et l'historique Git montre les versions successives.
+Ces contrôles confirment le respect des critères fonctionnels et de sécurité de l'US07. Le backend ne nécessite pas de changement de comportement et l'harmonisation porte sur l'interface.
+
+L'usage de l'IA documenté pour ce projet s'arrête à cette US07. Les autres user stories et les corrections transversales ne font pas partie de ce périmètre.
+
+## Améliorations de la solution
+
+L’en-tête public est partagé entre cinq écrans. TokenStorageService centralise le jeton et les signaux de session, auxquels AuthService donne accès ; l’intercepteur traite une seule fois les erreurs de session 401 et conserve les erreurs de mots de passe métier. L’historique accepte page, size (maximum 100) et status ; l’interface demande 20 fichiers par page. Le contenu de l’upload est écrit sans transaction et FileMetadataWriter valide ensuite les métadonnées dans une transaction courte. La purge sélectionne au plus 100 contenus expirés non supprimés et mémorise le succès.
+
+ESLint et PMD sont intégrés au lanceur qualité. Flyway remplace la modification automatique du schéma, `/actuator/health` expose la santé sans détails internes et les événements de sécurité sont journalisés sans secrets. Les variantes Unix se trouvent dans le README. Les mentions légales et la politique de confidentialité sont accessibles dans l’application à `/legal`.

@@ -4,6 +4,8 @@ DataShare permet d'envoyer temporairement un fichier à une autre personne grâc
 
 Ce README donne le chemin le plus court pour comprendre, lancer et vérifier le projet. Les détails techniques restent disponibles dans les documents liés en fin de page.
 
+> Améliorations de la solution : la limitation de débit et les renforcements techniques sont intégrés. Les mesures de charge historiques ne décrivent pas cette version.
+
 ## Structure
 
 ```text
@@ -32,7 +34,7 @@ Un JWT est un jeton de connexion envoyé avec les requêtes privées. Il permet 
 
 ## Lancement avec Docker
 
-Prérequis : Docker Desktop avec Docker Compose. Cette méthode lance l'interface, l'API et PostgreSQL ensemble. Les commandes ci-dessous sont écrites pour PowerShell.
+Prérequis : Docker Desktop avec Docker Compose. Cette méthode lance l'interface, l'API et PostgreSQL ensemble. Les commandes PowerShell sont complétées par les variantes Linux/macOS plus bas.
 
 Depuis la racine du repository :
 
@@ -53,7 +55,7 @@ Services disponibles :
 - Swagger UI : `http://localhost:8080/swagger-ui/index.html` ;
 - contrat OpenAPI JSON : `http://localhost:8080/v3/api-docs`.
 
-Le service PostgreSQL crée la base et son utilisateur à partir du fichier `.env`. Au premier démarrage, Hibernate crée ou met à jour le schéma avec `spring.jpa.hibernate.ddl-auto=update` ; aucun script SQL manuel n'est nécessaire pour installer cette version.
+Le service PostgreSQL crée la base et son utilisateur à partir du fichier `.env`. Flyway applique les migrations SQL versionnées de `backend/src/main/resources/db/migration`, puis Hibernate valide le schéma (`ddl-auto=validate`). Pour une base existante créée par Hibernate, suivre la reprise documentée dans [MAINTENANCE.md](docs/MAINTENANCE.md) avant de relancer.
 
 Pour arrêter l'application :
 
@@ -69,7 +71,7 @@ docker compose down -v
 
 ## Lancement en développement
 
-Prérequis : Java 21, Maven 3.9, Node.js compatible avec Angular 20 (version 20 à partir de 20.19, version 22 à partir de 22.12, ou version 24 et suivantes), npm et Docker Compose. Le Maven Wrapper a échoué dans l'environnement de vérification ; les commandes ci-dessous utilisent Maven installé (`mvn.cmd`).
+Prérequis : Java 21, Maven 3.9, Node.js compatible avec Angular 20 (version 20 à partir de 20.19, version 22 à partir de 22.12, ou version 24.x), npm et Docker Compose. Le Maven Wrapper a échoué dans l'environnement de vérification ; les commandes ci-dessous utilisent Maven installé (`mvn.cmd`).
 
 Démarrez uniquement PostgreSQL :
 
@@ -172,3 +174,36 @@ Les tests de performance lourds sont séparés des suites courantes. `node quali
 - [Maintenance](docs/MAINTENANCE.md)
 
 Important : ne versionnez jamais `.env`, les identifiants AWS, un JWT, un mot de passe ou les fichiers téléversés localement.
+
+## Linux et macOS
+
+Prérequis : Java 21, Maven 3.9, Node.js 22.12 ou plus récent dans la branche 22.x, npm, Docker et Compose. À la racine :
+
+```bash
+test -f .env || cp .env.example .env
+# Renseigner JWT_SECRET dans .env.
+docker compose up -d --build
+curl --fail http://localhost:8080/actuator/health
+```
+
+Pour le développement, lancer `docker compose up -d postgres`, puis ouvrir deux terminaux à la racine :
+
+```bash
+# Terminal backend
+cd backend
+export JWT_SECRET="remplacer-par-un-secret-aleatoire-de-32-octets-minimum"
+mvn spring-boot:run
+```
+
+```bash
+# Terminal frontend
+cd frontend
+npm ci
+npm start
+```
+
+Pour Karma, installer Chrome ou Chromium et définir `CHROME_BIN` si le navigateur n’est pas détecté. Exemple Linux : `export CHROME_BIN=/usr/bin/chromium` ; exemple macOS : `export CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"`.
+
+Les parcours Playwright utilisent Edge sous Windows et Chromium sous Linux/macOS. Installer ce dernier dans `frontend` avec `npx playwright install chromium` (sous Linux, `npx playwright install --with-deps chromium` si les bibliothèques système manquent). Les lanceurs `node quality/run-tests.mjs` et `node quality/run-maintenance.mjs validate` fonctionnent sur les trois systèmes. Les tests lourds écrits en PowerShell nécessitent `pwsh` sous Unix.
+
+La page `/legal` présente les mentions légales et la politique de confidentialité de l’application.

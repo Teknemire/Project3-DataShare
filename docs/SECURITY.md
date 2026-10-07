@@ -1,43 +1,24 @@
 # Sécurité de DataShare
 
+> Améliorations de la solution : les mesures de charge, scans et captures antérieurs restent des références historiques.
+
 ## En bref
 
 DataShare protège les comptes, les liens de partage et les fichiers à plusieurs niveaux. Le navigateur ne décide jamais seul des droits : le backend revérifie l'identité, le propriétaire, la taille, le type du fichier et l'autorisation de téléchargement.
 
-Ce document présente les protections réellement mises en place et les scans réalisés jusqu'au 29 septembre 2026. Il ne s'agit pas d'un audit de sécurité complet ni d'une certification.
+Ce document présente les protections réellement mises en place et la procédure de contrôle reproductible. Il ne s'agit pas d'un audit de sécurité complet ni d'une certification.
 
-## Résultats des scans
+## Contrôle reproductible des dépendances
 
-`npm audit` recherche les vulnérabilités connues dans les dépendances JavaScript. Trivy effectue un contrôle comparable sur les fichiers de dépendances et sur le JAR, c'est-à-dire l'application backend réellement construite.
-
-| Outil | Périmètre | Résultat |
-|---|---|---|
-| `npm audit` — revérifié le 29 septembre | Toutes les dépendances npm installées, production et développement | 0 vulnérabilité, tous niveaux confondus |
-| Trivy 0.74.0 — 29 septembre | `frontend/package-lock.json` et `backend/pom.xml`, vulnérabilités corrigibles HIGH/CRITICAL | 0 vulnérabilité HIGH ou CRITICAL détectée |
-| Trivy 0.74.0 `rootfs` — 29 septembre | 146 dépendances réellement contenues dans le JAR construit | 0 vulnérabilité HIGH ou CRITICAL détectée |
-
-Le contrôle du JAR du 27 septembre avait signalé trois vulnérabilités connues, ou CVE, sur `tomcat-embed-core:11.0.24` : `CVE-2026-65182`, `CVE-2026-65905` et `CVE-2026-68525`. Le 29 septembre, les modules Tomcat embarqués ont été alignés sur `11.0.26`. Cette version a été retenue plutôt que `11.0.25`, car les [avis Apache](https://tomcat.apache.org/security-11.html) publiés depuis signalent aussi des défauts affectant la version intermédiaire.
-
-Le premier rescan du 29 septembre a ensuite détecté `CVE-2026-68497` dans les deux générations de Jackson présentes dans le JAR. Les BOM Jackson 2 et 3 ont été mis à jour respectivement vers `2.21.6` et `3.1.6`. Après reconstruction, les 76 tests backend et les 6 scénarios Playwright passent ; le rescan final du JAR ne détecte plus de vulnérabilité HIGH ou CRITICAL.
-
-Le scan des manifestes avertit qu'il ne peut pas résoudre certaines versions Maven héritées. Son zéro ne doit donc pas être présenté seul comme un bilan de toutes les dépendances Java : le scan du JAR construit est la vérification complémentaire. Le [rapport JAR](../quality/trivy-jar-report.json) conserve le résultat complet.
-
-Le script [run-security.mjs](../quality/run-security.mjs) permet de refaire le même contrôle sans retenir toute la suite de commandes. Il construit et teste d'abord le backend, puis affiche les contrôles dans leur ordre d'exécution :
+`npm audit` recherche les vulnérabilités connues dans les dépendances JavaScript. Trivy analyse les manifestes du projet puis le JAR backend réellement construit. Le script [run-security.mjs](../quality/run-security.mjs) enchaîne ces contrôles dans leur ordre d'exécution :
 
 ```text
 node quality/run-security.mjs
 ```
 
-Ses quatre étapes sont : tests et construction Maven, `npm audit`, scan Trivy des fichiers de dépendances, puis scan du contenu réel du JAR. Le cache Maven est seulement lu par Trivy pour identifier les versions déjà téléchargées. Le script s'arrête si un contrôle obligatoire échoue et signale séparément les résultats de `npm audit`.
+Ses quatre étapes sont : tests et construction Maven, `npm audit`, scan Trivy des fichiers de dépendances, puis scan du contenu réel du JAR. Le cache Maven est seulement lu par Trivy pour identifier les versions déjà téléchargées. Le script s'arrête si un contrôle obligatoire échoue.
 
-Les preuves brutes sont conservées dans `quality/`, hors des répertoires `backend/` et `frontend/` :
-
-- [résultat npm audit](../quality/npm-audit.json) ;
-- [résultat Trivy](../quality/trivy-report.txt).
-
-Les options exactes de `npm audit` et Trivy restent lisibles dans le script. Elles sont donc versionnées et revues comme le code, au lieu de dépendre d'une suite de commandes mémorisée.
-
-Une tentative de mesure avec une dépendance Lighthouse a fait apparaître des vulnérabilités de développement transitives. Cette dépendance n'était pas nécessaire au produit : elle a été retirée, puis `npm audit` a été relancé avec un résultat nul. Les métriques navigateur sont obtenues avec Playwright, déjà utilisé par les E2E.
+Les rapports produits dans `quality/` restent locaux et ne sont pas versionnés. Il faut relancer le script avant chaque livraison pour obtenir un résultat fondé sur les bases de vulnérabilités disponibles à cette date. Le scan des manifestes peut manquer certaines versions Maven héritées ; l'analyse du JAR construit complète donc ce contrôle. Les options exactes restent lisibles dans le script versionné.
 
 ## Mesures appliquées
 
@@ -86,7 +67,7 @@ Les secrets et identifiants AWS sont fournis par variables d'environnement. `.en
 ## Limites connues
 
 - Pas d'antivirus ni d'analyse profonde des archives ; elles sont stockées et téléchargées sans extraction.
-- Pas de limitation automatique du débit ou des tentatives de connexion.
+- Limitation en mémoire sur une instance : 120 requêtes API, 10 tentatives de connexion/inscription, 10 uploads et 20 autorisations de téléchargement par minute et par adresse socket. Une architecture distribuée nécessite un limiteur partagé.
 - HTTPS doit être assuré par l'hébergement ou un reverse proxy en cas d'exposition distante ; le Compose local utilise HTTP.
 - Trivy avertit que certaines versions Maven héritées du parent ne sont pas directement lisibles dans le `pom.xml`. Les tests Maven et la veille de dépendances restent donc nécessaires.
 - Aucun test d'intrusion complet ni certification RGAA/RGPD n'est revendiqué.

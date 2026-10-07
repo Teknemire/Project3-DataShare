@@ -43,7 +43,7 @@ switch (mode) {
   case 'release':
     section(1, 'Validation fonctionnelle complete', 'Les tests unitaires, le build, Docker et les E2E sont executes.');
     run(process.execPath, ['quality/run-tests.mjs', '--all']);
-    section(2, 'Validation de securite', 'npm audit et les deux scans Trivy produisent les rapports de preuve.');
+    section(2, 'Validation de securite', 'npm audit et les deux scans Trivy produisent des rapports locaux reproductibles.');
     run(process.execPath, ['quality/run-security.mjs']);
     finish('controle avant livraison termine.');
     break;

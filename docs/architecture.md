@@ -1,5 +1,7 @@
 # DataShare — Architecture et conception
 
+> Améliorations de la solution : les mesures de charge, scans et captures antérieurs restent des références historiques.
+
 Dernière révision documentaire : 1er octobre 2026. Ce document décrit la conception retenue et l'état réel de l'application après les user stories et les travaux de qualité.
 
 Il peut se lire à deux niveaux. Les débuts de section expliquent le besoin et les décisions en langage courant ; les tableaux, diagrammes et contrats donnent ensuite le détail utile à une reprise technique. Le périmètre initial couvre les US01 à US06, avec protection facultative des fichiers par mot de passe. Les décisions principales sur l'expiration, les types de fichiers et la suppression du compte sont résumées en section 13.
@@ -29,7 +31,7 @@ Une user story, abrégée **US**, décrit un besoin du point de vue de l'utilisa
 | US05 | Historique personnel | Nom, taille, date d'envoi, expiration et état du lien ; accès du propriétaire uniquement ; aucun tri ni filtre obligatoire |
 | US06 | Suppression | Confirmation côté interface ; contrôle du propriétaire ; suppression physique et suppression des métadonnées ; action irréversible |
 
-La route permettant de récupérer l'utilisateur connecté est ajoutée à ce périmètre à la demande du porteur du projet. La déconnexion apparaît dans les maquettes.
+La route permettant de récupérer l'utilisateur connecté complète ce périmètre. La déconnexion apparaît dans les maquettes.
 
 Le fonctionnement retenu est un fichier par envoi et par lien. L'objectif général évoque plusieurs fichiers, mais US01 et les formulaires montrent un fichier unique. Aucun transfert groupé, dossier ou archive générée n'est prévu.
 
@@ -187,7 +189,7 @@ Les opérations PostgreSQL et fichier/S3 ne forment pas une transaction atomique
 - Une suppression physique répétée doit tolérer un objet déjà absent. Une panne entre les deux suppressions peut laisser des métadonnées sans contenu ; ne pas annoncer une transaction distribuée inexistante.
 - Expiration : refuser le téléchargement dès `expiresAt`, indépendamment du succès de la purge. Pour un fichier possédé, supprimer le contenu et conserver la métadonnée destinée à l'historique. Pour un transfert anonyme, supprimer aussi la métadonnée puisqu'aucun historique ne l'utilise. Un échec de nettoyage est signalé et la prochaine purge peut réessayer grâce à `storageKey`.
 
-Ces principes ne conduisent à aucune transaction distribuée, queue, message broker, mécanisme complexe de retry, Redis, système d'audit ou nouvelle couche métier.
+Ces principes ne nécessitent pas de transaction distribuée, de queue ou de Redis.
 
 Le changement de stratégie au démarrage ne migre pas les fichiers existants. Pour la démonstration, chaque configuration doit utiliser des données cohérentes avec son stockage. Aucune migration automatique ni stratégie par fichier n'est prévue.
 
@@ -244,7 +246,7 @@ Ce diagramme représente les entités métier et la collection de tags. Dans le 
 
 L'état actif/expiré, la durée restante et l'URL de partage sont calculables et ne sont pas stockés. `passwordProtected` est également calculé : il vaut `true` si `downloadPasswordHash` est présent, et `false` s'il est nul. La confirmation du mot de passe d'inscription appartient au formulaire, pas à la base.
 
-Après expiration, la même ligne conserve les métadonnées nécessaires à l'historique. Le contenu a été supprimé et aucun champ d'archive ou de soft-delete n'est ajouté.
+Après expiration, la ligne d’un transfert possédé conserve les métadonnées nécessaires à l’historique. `content_deleted` indique si la suppression physique a réussi ; ce champ technique évite une suppression répétée. L’état du lien reste calculé avec `expiresAt`, indépendamment du délai de purge. Les métadonnées anonymes sont supprimées après leur contenu.
 
 Aucune entité Role, Permission, Session, Tag, AuditLog ou DownloadLog n'est prévue. La table `FILE_TAG` persiste uniquement la collection de chaînes portée par `FileMetadata`.
 
@@ -284,7 +286,7 @@ Le contrat comporte onze endpoints métier. Il couvre l'authentification, la sup
 | `GET /api/auth/me` | Authentifié ; récupérer l'utilisateur du JWT | Aucun paramètre ni corps | `200`, `UserResponse` | `401` identité absente, invalide, expirée ou compte inexistant |
 | `DELETE /api/users/me` | Authentifié ; supprimer définitivement son compte | JSON `{password}` après double confirmation dans l'interface | `204`, aucun contenu | `400` format ; `401 INVALID_CREDENTIALS` ; `503 STORAGE_UNAVAILABLE` |
 | `POST /api/files` | Public, JWT facultatif ; déposer un fichier anonyme ou possédé | Multipart : `file` obligatoire, `expirationDays` facultatif, défaut 7, `password` facultatif, `tags` répétable pour un utilisateur connecté | `201`, `FileResponse` | `400` fichier, durée, mot de passe ou tag invalide ; `401` si un JWT est invalide ou si un visiteur envoie des tags ; `413 FILE_TOO_LARGE` ; `415 FILE_TYPE_NOT_ALLOWED` ; `503 STORAGE_UNAVAILABLE` |
-| `GET /api/files` | Authentifié ; lister ses fichiers actifs et expirés | Aucun corps ; filtrage simple côté Angular | `200`, tableau de `FileResponse`, vide si nécessaire | `401` |
+| `GET /api/files` | Authentifié ; lister ses fichiers actifs et expirés | Query `page` (défaut 0), `size` (défaut 20, maximum 100), `status` facultatif ACTIVE/EXPIRED ; filtrage en base | `200`, tableau paginé de `FileResponse`, vide si nécessaire | `400` pagination ou filtre invalide ; `401` ; `429` |
 | `GET /api/files/{id}` | Authentifié et propriétaire ; consulter un fichier | `id` dans le chemin ; aucun corps | `200`, `FileResponse` | `401` ; `404 FILE_NOT_FOUND` pour absent ou non possédé |
 | `DELETE /api/files/{id}` | Authentifié et propriétaire ; supprimer | `id` dans le chemin ; aucun corps | `204`, aucun contenu | `401` ; `404 FILE_NOT_FOUND` pour absent ou non possédé ; `503 STORAGE_UNAVAILABLE` |
 | `GET /api/shares/{token}` | Public avec lien ; consulter les informations du fichier | `token` dans le chemin | `200`, `SharedFileResponse` | `404 SHARE_NOT_FOUND` ; `410 SHARE_EXPIRED` si les métadonnées permettent d'identifier l'expiration |
@@ -297,7 +299,7 @@ L'inscription réussie conduit à l'écran de connexion. La confirmation de mot 
 
 Le `POST /api/files` associe le fichier au principal uniquement lorsqu'un JWT valide est présent. Aucun `userId` n'est reçu du client. Les autres routes `/api/files` restent privées : la liste ne contient que les fichiers du propriétaire, et la lecture individuelle comme la suppression répondent `404` pour un fichier absent ou appartenant à un autre utilisateur. Un transfert anonyme n'apparaît donc dans aucun historique et ne possède aucune route de gestion.
 
-La liste contient les fichiers actifs et les métadonnées expirées du propriétaire, avec leurs tags. Angular applique les filtres Tous/Actifs/Expirés visibles dans la maquette. Le filtrage par tag mentionné comme facultatif dans US08 n'est pas ajouté. L'API utilise un ordre stable par date d'envoi décroissante puis par identifiant décroissant en cas d'égalité, sans ajouter de fonctionnalité de tri. Le GET individuel peut retourner la métadonnée d'un fichier expiré ; il ne lui rend pas son droit au téléchargement.
+La liste contient les fichiers actifs et les métadonnées expirées du propriétaire, avec leurs tags. Angular transmet le filtre Tous/Actifs/Expirés à l’API, qui l’applique en base avant de renvoyer la page demandée. Le filtrage par tag mentionné comme facultatif dans US08 n'est pas ajouté. L'API utilise un ordre stable par date d'envoi décroissante puis par identifiant décroissant en cas d'égalité, sans ajouter de fonctionnalité de tri. Le GET individuel peut retourner la métadonnée d'un fichier expiré ; il ne lui rend pas son droit au téléchargement.
 
 ### Upload avec protection facultative
 
@@ -494,7 +496,7 @@ Les opérations privées utilisent toujours le propriétaire issu de l'authentif
 - Définir les origines CORS nécessaires ; utiliser HTTPS en cas d'exposition distante.
 - Adapter la protection CSRF au transport d'authentification retenu. Un passage à des cookies demande une réévaluation ; ne pas désactiver des protections par automatisme.
 - Ne pas journaliser mots de passe, JWT, corps sensibles ou URLs complètes contenant les tokens. Masquer aussi ces chemins dans d'éventuels logs d'accès.
-- La version actuelle ne limite pas automatiquement les tentatives de connexion ou de mot de passe de téléchargement ; cette limite est consignée dans `SECURITY.md`.
+- Le filtre de limitation en mémoire borne, par minute et par adresse socket, le trafic API global ainsi que les actions d’authentification, d’upload et d’autorisation de téléchargement. Une architecture à plusieurs instances devra utiliser un limiteur partagé ; les seuils actuels figurent dans `SECURITY.md`.
 
 La politique de fichiers retenue pour le MVP accepte les images, vidéos, fichiers audio et archives courantes. Les documents usuels qui sont uniquement stockés puis téléchargés peuvent également être acceptés ; ils ne sont jamais interprétés ni affichés par DataShare.
 
@@ -555,40 +557,18 @@ L'ordre des commits suit la logique de construction du projet, pas la numérotat
 | Partage — US02 | Informations publiques, contrôle du mot de passe, ticket court et téléchargement natif en flux | `feat(backend-sharing): implement public file download`, `feat(frontend-sharing): implement public file download interface` |
 | Historique — US05 | Historique du propriétaire | `feat(backend-files): implement personal file history`, `feat(frontend-files): implement personal file history interface` |
 | Suppression — US06 | Confirmation et suppression cohérente | `feat(backend-files): implement owned file deletion`, `feat(frontend-files): implement file deletion interface` |
-| Avancée — US07 | Upload sans compte, sans historique ni gestion ; contribution IA tracée puis harmonisée après revue | `feat(backend-ai): implement anonymous uploads for US07`, `refactor(backend-us07): align upload service with project conventions`, puis leurs équivalents frontend |
+| Avancée — US07 | Upload sans compte, sans historique ni gestion | Implémentation backend et frontend de l’upload anonyme |
 | Avancée — US08 | Tags facultatifs à l'upload authentifié et affichage dans l'historique, sans filtre ni gestion séparée | `feat(backend-tags): implement file tags`, `feat(frontend-tags): add tags to uploads and file history` |
 | US09 et US10 | Mot de passe et expiration déjà intégrés aux parcours US01/US02 ; purge automatique | Commits d'upload et de téléchargement ci-dessus |
 | Complément | Suppression définitive du compte et de ses données | `feat(backend-account): implement account deletion`, `feat(frontend-account): implement account deletion interface` |
 | Premiers contrôles qualité | Métriques, couverture d'intégration, accessibilité et tests de bout en bout | `feat(backend-observability): add structured API request metrics`, `test(backend-quality): add integration coverage gate`, `fix(frontend-accessibility): improve labels and contrast` |
 | Consolidation du dépôt | Réunir l'arborescence backend/frontend et préparer les livrables communs | `chore(project): prepare monorepo delivery` |
-| Audit et corrections | Corriger les défauts relevés, compléter les preuves et ajouter les lanceurs qualité | `fix(backend-auth): fix JWT and passwords after Astra 6 audit`, `test(project-quality): add reproducible quality launchers`, `fix(project-deps): update Tomcat and Jackson after security scan` |
+| Améliorations de la solution | Renforcer l’authentification, le téléchargement, le contrat OpenAPI et les contrôles automatisés | Corrections ciblées, lanceurs qualité et mises à jour des dépendances |
 | Documentation | Finaliser les documents et leurs renvois vers les preuves | `docs(project): finalize project documentation` |
 
-Chaque commit correspond à un changement cohérent et vérifié. Les tests utiles accompagnent les fonctionnalités ; ils ne sont pas tous repoussés à une phase finale. Les corrections sont tracées séparément lorsqu'elles constituent une unité de travail distincte.
+Les commits suivent la progression fonctionnelle et technique du projet. Les tests utiles accompagnent les fonctionnalités afin de rendre chaque étape vérifiable.
 
-Le projet est maintenant réuni dans un dépôt unique avec un historique linéaire. Les messages indiquent clairement si un changement concerne le backend, le frontend ou l'ensemble du projet. `docs/` contient la documentation technique et `quality/` les scripts et résultats auxquels elle renvoie. Les spécifications et maquettes de référence sont conservées séparément. La publication sur un dépôt distant reste à effectuer.
-
-### Revue technique du code produit avec l'IA
-
-#### Périmètre concerné
-
-US07 est la user story utilisée pour documenter la contribution IA. Elle portait sur l'upload sans compte côté backend et frontend : accès public à `POST /api/files`, création d'un transfert sans propriétaire et accès d'un visiteur aux écrans d'accueil et d'upload. Les commits `feat(backend-ai)` et `feat(frontend-ai)` identifient l'implémentation initiale ; `refactor(backend-us07)` et `refactor(frontend-us07)` tracent la reprise après revue. L'IA a aidé au développement et à la relecture, mais les décisions et les essais manuels ont été validés par le porteur du projet.
-
-#### Points contrôlés
-
-La revue a vérifié que le backend ne fait confiance à aucun `userId` fourni par le client, que le propriétaire est réellement facultatif pour un upload anonyme et que les routes privées restent protégées. Elle a également contrôlé la réutilisation des validations de taille et de type, de l'expiration, du token de partage non prédictible et de l'abstraction `StorageService`. Un transfert anonyme n'apparaît dans aucun historique utilisateur et les tags, réservés aux utilisateurs connectés, sont refusés avant le stockage lorsqu'aucun utilisateur n'est authentifié.
-
-#### Corrections après revue
-
-La reprise a harmonisé l'implémentation avec les conventions déjà utilisées dans le projet : même endpoint pour les deux modes d'upload, principal Spring facultatif, même service métier et mêmes réponses API. Côté Angular, la gestion de l'état de connexion et les appels au service de fichiers ont été alignés sur les autres composants. Les différences de style et les traitements redondants introduits dans la première version ont été supprimés sans ajouter de couche ni d'abstraction supplémentaire.
-
-#### Tests effectués
-
-Les tests backend couvrent l'appel public du contrôleur, l'enregistrement d'une métadonnée sans propriétaire, l'expiration par défaut et le refus des tags anonymes avant tout stockage. Les tests frontend vérifient qu'un visiteur peut accéder à l'upload depuis l'accueil, qu'une invitation à se connecter reste visible sans bloquer le transfert et que les validations habituelles de fichier continuent de s'appliquer. La suite complète de tests backend et frontend permet aussi de vérifier l'absence de régression sur l'upload authentifié, l'historique et les contrôles d'accès.
-
-#### Résultat final
-
-Après revue, US07 utilise le même parcours métier que l'upload authentifié, avec pour seule différence l'absence de propriétaire. Le code final respecte l'architecture existante, reste lisible pour la maintenance et conserve dans Git les versions successives de l'implémentation et de sa reprise. Les messages de commit décrivent ces étapes sans établir à eux seuls l'auteur de chaque correction.
+Le projet est réuni dans un dépôt unique. Les messages distinguent backend, frontend et travaux communs. `docs/` contient la documentation technique et les preuves ; `quality/` contient les scripts et résultats. Les spécifications et maquettes restent séparées.
 
 ## 12. Qualité et documentation
 
@@ -596,16 +576,15 @@ Les contrôles de qualité s'appuient sur quatre documents de suivi, reliés aux
 
 | Document ou élément | Contenu |
 |---|---|
-| [TESTING.md](TESTING.md) | Plan, critères d'acceptation, commandes, résultats, 76 tests backend, 51 tests frontend, 6 scénarios E2E et captures de couverture |
-| [SECURITY.md](SECURITY.md) | Résultats `npm audit` et Trivy, mesures en place, limites et justification des décisions |
+| [TESTING.md](TESTING.md) | Plan, critères d'acceptation, commandes, résultats actuels : 85 tests backend, 53 tests frontend, 6 scénarios E2E et captures de couverture |
+| [SECURITY.md](SECURITY.md) | Procédure `npm audit` et Trivy, mesures en place, limites et justification des décisions |
 | [PERF.md](PERF.md) | Test k6 de l'upload, logs structurés, résultats, budget frontend et métriques navigateur |
 | [MAINTENANCE.md](MAINTENANCE.md) | Mise à jour des dépendances, fréquence, risques, données et procédure de correction |
 | README et scripts BDD | Installation, configuration, lancement et utilisation reproductibles |
-| [Documentation technique](documentation-technique.md) et API | Document suivant le modèle fourni, architecture détaillée, choix justifiés, MCD, OpenAPI, sécurité et utilisation de l'IA |
-| Revue du code produit par IA | Vérifications humaines et correctifs réellement effectués |
-| Dépôt et présentation | Historique Git local structuré et code complet ; publication sur un dépôt distant restant à effectuer |
+| [Documentation technique](documentation-technique.md) et API | Document suivant le modèle fourni, architecture détaillée, choix justifiés, MCD, OpenAPI et sécurité |
+| Dépôt et présentation | Historiques backend et frontend conservés comme parents de la consolidation ; documentation et trame de présentation regroupées dans le dépôt |
 
-L'objectif de couverture de 70 % est atteint sur les lignes : 86,68 % côté backend et 78,10 % côté frontend. Ces chiffres sont complétés par les scénarios E2E réels ; ils ne remplacent pas la vérification des cas critiques.
+L’objectif de couverture de 70 % est atteint sur les lignes : 89,43 % côté backend et 77,40 % côté frontend. Ces chiffres sont complétés par les scénarios E2E réels ; ils ne remplacent pas la vérification des cas critiques.
 
 Les vérifications prioritaires portent sur l'inscription et la connexion, l'absence d'accès aux fichiers d'un autre utilisateur, la taille et le type des uploads, l'expiration, les téléchargements protégés ou non, l'identité de la réponse `401` pour mot de passe requis absent ou incorrect, la réception de fichiers volumineux, les erreurs de stockage et la suppression effective. Les deux stratégies de stockage respectent le même comportement métier. Aucun hash n'apparaît dans une réponse API.
 

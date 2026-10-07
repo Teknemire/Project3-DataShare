@@ -8,7 +8,7 @@ import { SiteHeader } from '../../shared/site-header/site-header';
     <app-site-header />
     <main>
       <h1>Mentions légales et confidentialité</h1>
-      <p>Version du 7 octobre 2026. DataShare est un prototype de démonstration locale.</p>
+      <p>DataShare est un prototype de démonstration locale.</p>
       <h2>Éditeur</h2>
       <p>DataShare. L’identité juridique, l’adresse, le contact, le directeur de publication et
         les coordonnées de l’hébergeur doivent être renseignés avant toute ouverture publique.</p>

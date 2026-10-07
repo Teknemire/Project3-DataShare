@@ -1,5 +1,7 @@
 # Maintenance de DataShare
 
+> Améliorations de la solution : les mesures de charge, scans et captures antérieurs restent des références historiques.
+
 ## À quoi sert ce document ?
 
 Ce guide explique comment garder DataShare fiable dans le temps. Il couvre quatre situations concrètes : surveiller les dépendances, corriger un défaut, préparer une livraison et protéger les données pendant une intervention.
@@ -38,13 +40,13 @@ Pour une validation quotidienne :
 node quality/run-maintenance.mjs validate
 ```
 
-Avant une livraison, le mode complet enchaîne les tests, le build, les parcours E2E, les captures de couverture, `npm audit` et les deux scans Trivy :
+Avant une livraison, le mode complet enchaîne les tests, le build, les parcours E2E, les captures de couverture, `npm audit` et les deux scans Trivy. Leurs rapports sont générés localement et ne sont pas versionnés :
 
 ```text
 node quality/run-maintenance.mjs release
 ```
 
-Chaque étape est nommée dans le terminal. Le script s'arrête lorsqu'un contrôle obligatoire échoue. La lecture des notes de version, la décision de mise à jour et la revue du résultat restent humaines.
+Chaque étape est nommée dans le terminal. Le script s'arrête lorsqu'un contrôle obligatoire échoue. La lecture des notes de version, la décision de mise à jour et la vérification du résultat restent humaines.
 
 Les risques à surveiller sont les changements majeurs d'Angular ou Spring Boot, les formats de configuration, les changements du SDK S3, la compatibilité Java 21, les migrations PostgreSQL et la taille du bundle frontend.
 
@@ -69,7 +71,7 @@ En cas de problème après livraison, Git permet de revenir à la version préc�
 - Après restauration, vérifier la cohérence entre chaque `storageKey` en base et le contenu présent dans le stockage.
 - La purge d'expiration doit rester active ; les métadonnées des fichiers possédés restent visibles comme expirées, les transferts anonymes sont supprimés avec leur contenu.
 
-La configuration actuelle laisse Hibernate adapter le schéma automatiquement pour faciliter le développement. Pour une exploitation durable avec des données à conserver, il faudra remplacer ce mécanisme par des migrations SQL versionnées, c'est-à-dire des changements de base relus, ordonnés et testés sur une sauvegarde.
+Flyway exécute les migrations versionnées V1 et V2 au démarrage ; Hibernate vérifie leur conformité avec `ddl-auto=validate`. Une migration déjà exécutée ne doit jamais être modifiée : ajouter V3, V4, etc. La procédure de reprise d’une base existante figure plus bas.
 
 ## Configuration et secrets
 
@@ -96,3 +98,27 @@ La vérification minimale comprend :
 - espace disque disponible pour PostgreSQL et le stockage local.
 
 Les résultats de référence et commandes complètes sont dans [TESTING.md](TESTING.md) et [PERF.md](PERF.md).
+
+## Reprendre une base existante avec Flyway
+
+Une base neuve exécute V1 puis V2 automatiquement. Une base créée auparavant par Hibernate n’a pas de table `flyway_schema_history` : le démarrage échoue par défaut, afin de ne pas l’adopter silencieusement.
+
+1. Arrêter les services applicatifs avec `docker compose stop frontend backend`.
+2. Sauvegarder la base et le stockage. Pour obtenir un dump sans conversion de l’encodage par PowerShell :
+
+```text
+docker compose exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" -f /tmp/datashare-before-flyway.sql'
+docker compose cp postgres:/tmp/datashare-before-flyway.sql ./datashare-before-flyway.sql
+```
+
+3. Examiner le schéma existant et vérifier qu’il correspond à V1 : `users`, `file_metadata`, `file_tag`, colonnes, types, contraintes et relations. Tester la reprise sur une copie restaurée de la sauvegarde. Le test automatisé de reprise utilise H2 ; il ne remplace pas cet essai PostgreSQL sur les données réelles.
+4. Pour ce premier démarrage uniquement, définir `FLYWAY_BASELINE_ON_MIGRATE=true` dans `.env`. Flyway inscrit une baseline de version 1, conserve les données puis applique V2.
+5. Redémarrer avec `docker compose up -d --build`, vérifier la santé et les parcours. Remettre ensuite `FLYWAY_BASELINE_ON_MIGRATE=false` dans `.env` et recréer le backend avec `docker compose up -d backend`.
+
+Ne jamais activer la baseline pour contourner une divergence de schéma. Le dump contient des données personnelles : le garder hors Git, avec le stockage sauvegardé et les accès nécessaires à sa restauration. Les tables et colonnes ajoutées doivent ensuite être migrées par une nouvelle version SQL.
+
+## Santé et événements de sécurité
+
+`GET /actuator/health` est public et renvoie le statut global ; les noms des groupes de sondes standard peuvent aussi apparaître dans un conteneur. La base est vérifiée par Actuator. Compose attend le backend sain avant de démarrer le frontend. Les autres endpoints Actuator ne sont pas exposés. Ce contrôle ne teste pas continuellement le contenu de chaque objet local/S3.
+
+Les lignes `event=security` consignent les connexions/inscriptions, refus d’authentification, suppressions et refus pour dépassement de débit. Les événements contiennent une action, une catégorie d’endpoint, un résultat et un statut ; aucun identifiant personnel, chemin de partage ou secret. Consulter avec `docker compose logs backend` et rechercher `event=security`. Configurer la collecte, la rotation, l’accès et la conservation des journaux selon l’environnement ; ce journal applicatif n’est pas un registre d’audit immuable.
