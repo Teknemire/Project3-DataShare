@@ -21,19 +21,31 @@ puis scan Trivy du contenu reel du JAR.
   process.exit(0);
 }
 
-let npmAuditHasFindings = false;
+let npmAuditHasProductionFindings = false;
 
 section(1, 'Construire et tester le backend', 'Le scan du JAR doit porter sur un artefact actuel et valide.');
 run(command('mvn'), ['verify'], { cwd: paths.backend });
 
-section(2, 'Auditer les dependances npm', 'npm recherche les vulnerabilites connues du frontend.');
+section(
+  2,
+  'Auditer les dependances npm',
+  'npm controle tout le frontend, puis distingue les dependances livrees des outils de developpement.',
+);
 const npmAudit = runAndSave(
   command('npm'),
   ['audit', '--json'],
   resolve(paths.quality, 'npm-audit.json'),
   { cwd: paths.frontend, allowFailure: true },
 );
-npmAuditHasFindings = npmAudit.status !== 0;
+const npmProductionAudit = run(command('npm'), ['audit', '--omit=dev', '--json'], {
+  cwd: paths.frontend,
+  allowFailure: true,
+  capture: true,
+});
+npmAuditHasProductionFindings = npmProductionAudit.status !== 0;
+if (npmAudit.status !== 0 && !npmAuditHasProductionFindings) {
+  console.warn('npm audit signale uniquement des outils de developpement ; consultez quality/npm-audit.json.');
+}
 
 section(3, 'Scanner les manifestes avec Trivy', 'Le rapport texte couvre package-lock.json et pom.xml.');
 run('docker', [
@@ -44,7 +56,9 @@ run('docker', [
   '-v', 'datashare-trivy-cache:/root/.cache/',
   trivyImage, 'fs',
   '--scanners', 'vuln', '--severity', 'HIGH,CRITICAL', '--ignore-unfixed',
-  '--skip-dirs', '/work/frontend/node_modules', '--skip-dirs', '/work/backend/target',
+  '--timeout', '10m',
+  '--skip-dirs', '.git', '--skip-dirs', 'tmp',
+  '--skip-dirs', 'frontend/node_modules', '--skip-dirs', 'backend/target',
   '--format', 'table', '--output', '/reports/trivy-report.txt', '/work',
 ]);
 
@@ -56,11 +70,12 @@ run('docker', [
   '-v', 'datashare-trivy-cache:/root/.cache/',
   trivyImage, 'rootfs',
   '--scanners', 'vuln', '--severity', 'HIGH,CRITICAL', '--ignore-unfixed',
+  '--timeout', '10m',
   '--format', 'json', '--output', '/reports/trivy-jar-report.json', '/scan',
 ]);
 
-if (npmAuditHasFindings) {
-  throw new Error('npm audit a signale au moins une vulnerabilite. Consultez quality/npm-audit.json.');
+if (npmAuditHasProductionFindings) {
+  throw new Error('npm audit a signale au moins une vulnerabilite de production. Consultez quality/npm-audit.json.');
 }
 
 finish('controles de securite termines ; rapports disponibles dans quality/.');

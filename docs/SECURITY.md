@@ -18,6 +18,8 @@ node quality/run-security.mjs
 
 Ses quatre étapes sont : tests et construction Maven, `npm audit`, scan Trivy des fichiers de dépendances, puis scan du contenu réel du JAR. Le cache Maven est seulement lu par Trivy pour identifier les versions déjà téléchargées. Le script s'arrête si un contrôle obligatoire échoue.
 
+Le rapport `npm audit` complet conserve aussi les alertes liées aux outils de développement. Le contrôle de livraison bloque sur l'audit `--omit=dev`, qui correspond aux dépendances embarquées en production. Une alerte limitée aux outils de test reste affichée et doit être réévaluée lors de chaque mise à jour ; elle n'est pas masquée par le lanceur.
+
 Les rapports produits dans `quality/` restent locaux et ne sont pas versionnés. Il faut relancer le script avant chaque livraison pour obtenir un résultat fondé sur les bases de vulnérabilités disponibles à cette date. Le scan des manifestes peut manquer certaines versions Maven héritées ; l'analyse du JAR construit complète donc ce contrôle. Les options exactes restent lisibles dans le script versionné.
 
 ## Mesures appliquées
